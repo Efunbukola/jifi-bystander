@@ -1,0 +1,13 @@
+<div *ngIf="showing"
+(click)="clickedOutsideModal($event)"
+[ngClass]="fullscreen?'':'p-4'"
+class="bg-gray-900 bg-opacity-80 fixed flex justify-center items-center top-0 left-0 right-0 z-[5000] w-full overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+
+    <div [ngClass]="fullscreen?'':'max-w-2xl'" class="relative w-full max-h-full shadow-lg" (click)="trackClicks($event);$event.stopPropagation()">
+            <ng-content></ng-content>    
+    </div>
+
+</div>
+
+
+  

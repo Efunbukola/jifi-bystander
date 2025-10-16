@@ -1,0 +1,193 @@
+<div class="h-screen overflow-y-auto max-w-4xl mx-auto p-6 space-y-6 font-sans">
+
+    <!-- Alert -->
+  <div *ngIf="connectionError" class="rounded-md bg-red-50 p-4 border border-red-200">
+    <div class="flex">
+      <div class="flex-shrink-0">
+        <!-- error icon -->
+        <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 00-1.5 0v4.5a.75.75 0 001.5 0v-4.5zM10 14a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"/>
+        </svg>
+      </div>
+      <div class="ml-3">
+        <h3 class="text-sm font-medium text-red-800">
+          {{ connectionError }}
+        </h3>
+      </div>
+      <div class="ml-auto pl-3">
+        <button (click)="connectionError = null" class="text-red-400 hover:text-red-600">
+          <span class="sr-only">Dismiss</span>
+          ✕
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <header class="flex items-center justify-between">
+    <div class="flex items-center gap-3">    
+      <div>
+        <h1 class="text-2xl font-semibold text-gray-800">JI Band App</h1>
+        <p class="text-sm text-gray-500">Scan, connect up to 2 bands</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button
+        class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md shadow-sm text-sm"
+        (click)="scan()"
+      >
+            {{ bluetoothService.scanning ? 'Scanning...' : 'Scan for Devices' }}
+
+      </button>
+    </div>
+  </header>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+    <!-- Available Devices -->
+    <section class="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-lg font-medium text-gray-800">Available Bluetooth Devices</h2>
+        <span class="text-sm text-gray-500">{{ availableDevices.length }} found</span>
+      </div>
+
+      <ul class="space-y-2">
+        <li *ngFor="let device of availableDevices" class="flex items-center justify-between gap-3 p-3 rounded-md hover:bg-gray-50">
+          <div class="flex items-center gap-3">
+            <span class="w-10 h-10 rounded-md bg-indigo-50 flex items-center justify-center text-indigo-600">
+              <!-- initial letter -->
+              <span class="font-semibold">{{ (device.name || device.id).charAt(0) }}</span>
+            </span>
+            <div>
+              <div class="text-sm font-medium text-gray-800">{{ device.name || 'Unknown Device' }}</div>
+              <div class="text-xs text-gray-400">{{ device.id }}</div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button
+              class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm"
+              (click)="connect(device)"
+              [attr.disabled]="(connectedDevices.length >= 2) ? true : null"
+              [title]="connectedDevices.length >= 2 ? 'Disconnect one device first' : 'Connect'"
+            >
+                      {{ isConnecting(device.id) ? 'Connecting...' : 'Connect' }}
+            </button>
+          </div>
+        </li>
+
+        <li *ngIf="availableDevices.length === 0" class="text-sm text-gray-500 p-3">
+          No devices found (make sure bluetooth is turned on)
+        </li>
+      </ul>
+    </section>
+
+  <!-- Connected Devices -->
+  <section class="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-lg font-medium text-gray-800">Connected JI Bands</h2>
+      <span class="text-sm text-gray-500">{{ connectedDevices.length }}/2</span>
+    </div>
+
+    <ul class="space-y-2">
+      <li *ngFor="let device of connectedDevices" class="bg-gray-50 rounded-md border border-gray-200">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between gap-3 p-3 cursor-pointer" (click)="device.showMessages = !device.showMessages">
+          <div class="flex items-center gap-3">
+            <span class="w-10 h-10 rounded-md bg-gradient-to-br from-green-400 to-teal-500 flex items-center justify-center text-white">
+              <!-- check icon -->
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <div>
+              <div class="text-sm font-medium text-gray-800">{{ device.name || 'Unknown Device' }}</div>
+              <div class="text-xs text-gray-400">{{ device.id }}</div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button class="px-3 py-1.5 border border-gray-200 text-sm rounded-md hover:bg-white" (click)="disconnect(device.id)">
+              Disconnect
+            </button>
+          </div>
+        </div>
+
+        <!-- Expandable Messages & Actions -->
+        <div class="p-3 border-t border-gray-200 space-y-2 bg-white">
+          <!-- Message Log -->
+          <div class="h-32 overflow-y-auto bg-gray-50 p-2 rounded-md border border-gray-100 text-xs text-gray-700">
+            <div *ngFor="let msg of device.messages">
+              {{ msg }}
+            </div>
+            <div *ngIf="!device.messages || device.messages.length === 0" class="text-gray-400">No messages received yet.</div>
+          </div>
+
+          <!-- Action Buttons -->
+<div class="flex gap-2 mt-2">
+
+        <!-- Start Calibration -->
+        <button
+          class="flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm"
+          (click)="startCalibration(device)"
+          title="Start Calibration"
+        >
+          <!-- icon: target -->
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 6v6l4 2m6 4a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span>Calibrate</span>
+        </button>
+
+        <!-- Start Data Collection -->
+        <button
+          class="flex items-center gap-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm"
+          (click)="startDataCollection()"
+          title="Start/stop Data Collection"
+        >
+          <!-- icon: download -->
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 16v4h16v-4M12 12v8m0 0l-4-4m4 4l4-4"/>
+          </svg>
+          <span>Collect Data</span>
+        </button>
+
+        <!-- Enter Low Power Mode -->
+        <button
+          class="flex items-center gap-1 px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md text-sm"
+          (click)="enterLowPowerMode(device)"
+          title="Low Power Mode"
+        >
+          <!-- icon: moon / battery -->
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 3C7.03 3 3 7.03 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-4.97-4.03-9-9-9z"/>
+          </svg>
+          <span>Low Power</span>
+        </button>
+
+</div>
+
+
+
+        </div>
+
+      </li>
+
+      <li *ngIf="connectedDevices.length === 0" class="text-sm text-gray-500 p-3">
+        No devices connected.
+      </li>
+    </ul>
+  </section>
+
+
+  </div>
+
+  <!-- Footer / Tips -->
+  <footer class="text-xs text-gray-500 mt-4">
+    <p>Make sure that the devices are powered on and discoverable</p>
+  </footer>
+</div>

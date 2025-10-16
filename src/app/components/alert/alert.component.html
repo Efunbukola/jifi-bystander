@@ -1,0 +1,25 @@
+
+<div [ngClass]="{
+   'text-blue-800 bg-blue-50 border-blue-300':alertType===AlertType.info,
+   'text-red-800 bg-red-50 border-red-300':alertType===AlertType.danger,
+   'text-green-800 bg-green-50 border-green-300':alertType===AlertType.success,
+   'text-yellow-800 bg-yellow-50 border-yellow-300':alertType===AlertType.warning,
+   'text-gray-800 bg-gray-50 border-gray-300':alertType===AlertType.generic,
+}"
+class="flex items-center p-4 mb-4 text-sm  border rounded-lg" role="alert">
+
+<svg *ngIf="showCheckIcon" class="flex-shrink-0 inline w-4 h-4 mr-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 12">
+    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5.917 5.724 10.5 15 1.5"/>
+</svg>
+
+<svg *ngIf="showInfoIcon" class="flex-shrink-0 inline w-4 h-4 mr-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+</svg>
+
+<div>
+ <ng-content></ng-content>
+</div>
+
+</div>
+
+  

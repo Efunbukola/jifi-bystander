@@ -1,0 +1,15 @@
+<ion-app>
+  
+  <ion-router-outlet [animated]="false"></ion-router-outlet>
+
+  <div #alert [ngClass]="(alertService.show$ | async)?.show?'-translate-y-[40px]':'translate-y-full'"
+class="flex justify-center items-center fixed bottom-0 transition-transform z-40 w-full px-4">
+
+<div class="bg-[#333] text-white p-[16px] text-center mx-2">
+  {{config.text}}
+</div>
+
+</div>
+
+</ion-app>
+

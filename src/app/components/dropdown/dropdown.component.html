@@ -1,0 +1,16 @@
+
+<span (click)="toggle()" 
+#button class="cursor-pointer select-none" [ngClass]="isOpen?'':''"
+(mouseover)="showOnHover()">
+<ng-content select="[trigger]"></ng-content>
+</span>
+
+<div class="z-[500] hidden border-1 border-gray-500 bg-white divide-y divide-gray-100 rounded-lg shadow  min-w-fit absolute" #dropdown
+    [style.display]="isOpen ? 'block' : 'none'"
+    [style.width]="width + 'px'"
+    >
+
+    <ng-content select="[menu]"></ng-content>
+
+</div>
+
