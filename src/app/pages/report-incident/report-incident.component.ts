@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
@@ -10,7 +10,7 @@ import { Geolocation } from '@capacitor/geolocation';
   styleUrls: ['./report-incident.component.scss'],
   standalone: false,
 })
-export class ReportIncidentComponent {
+export class ReportIncidentComponent implements OnInit {
   incidentForm: FormGroup;
   photoUrls: string[] = [];
   submitting = false;
@@ -18,19 +18,22 @@ export class ReportIncidentComponent {
   error = '';
   location: { lat: number; lng: number } | null = null;
 
-  // Nearby incidents logic
   nearbyIncidents: any[] = [];
-  showExistingList = false;
   selectedIncidentId: string | null = null;
-  checkingNearby = false;
+  loadingIncidents = true;
+  checkingLocation = true;
 
   constructor(private fb: FormBuilder, private http: HttpClient) {
     this.incidentForm = this.fb.group({
       description: ['', [Validators.required, Validators.minLength(10)]],
+      maxResponders: [3, [Validators.required, Validators.min(1), Validators.max(10)]], // ✅ Reactive form field
     });
   }
 
-  // Called when an image uploader component emits a URL
+  async ngOnInit() {
+    await this.loadNearbyIncidents();
+  }
+
   onImageUploaded(event: { url: string; file_name: string }) {
     this.photoUrls.push(event.url);
   }
@@ -45,36 +48,31 @@ export class ReportIncidentComponent {
 
   async fetchLocation() {
     try {
-      const position = await Geolocation.getCurrentPosition({
-        enableHighAccuracy: true,
-      });
+      const position = await Geolocation.getCurrentPosition({ enableHighAccuracy: true });
       this.location = {
         lat: position.coords.latitude,
         lng: position.coords.longitude,
       };
-      console.log('[GPS] Location fetched:', this.location);
+      this.checkingLocation = false;
+      return true;
     } catch (err) {
       console.warn('⚠️ Could not get location:', err);
       this.error = 'Unable to fetch your location. Please enable GPS.';
+      this.checkingLocation = false;
+      return false;
     }
   }
 
-  /**
-   * Step 1 — Check for existing nearby incidents
-   */
-  async checkNearbyIncidents() {
-    this.error = '';
+  async loadNearbyIncidents() {
+    this.loadingIncidents = true;
     this.nearbyIncidents = [];
-    this.showExistingList = false;
-    this.checkingNearby = true;
+    this.error = '';
+    this.message = '';
 
-    if (!this.location) {
-      await this.fetchLocation();
-      if (!this.location) {
-        this.error = 'Location not available. Please enable GPS.';
-        this.checkingNearby = false;
-        return;
-      }
+    const locationAvailable = await this.fetchLocation();
+    if (!locationAvailable || !this.location) {
+      this.loadingIncidents = false;
+      return;
     }
 
     try {
@@ -84,31 +82,28 @@ export class ReportIncidentComponent {
         .toPromise();
 
       this.nearbyIncidents = res || [];
-      this.showExistingList = this.nearbyIncidents.length > 0;
-
-      if (!this.showExistingList) {
-        this.message = 'No nearby incidents found. You can report a new one.';
-      } else {
-        this.message = '';
+      if (this.nearbyIncidents.length === 0) {
+        this.message = 'No nearby incidents found. You can create a new one below.';
       }
     } catch (err) {
-      console.error('Error checking nearby incidents', err);
-      this.error = 'Error fetching nearby incidents.';
+      console.error('Error loading nearby incidents', err);
+      this.error = 'Error loading nearby incidents.';
     } finally {
-      this.checkingNearby = false;
+      this.loadingIncidents = false;
     }
   }
 
-  /**
-   * Step 2 — Submit new or attach to existing
-   */
+  toggleIncidentSelection(incidentId: string) {
+    this.selectedIncidentId = this.selectedIncidentId === incidentId ? null : incidentId;
+  }
+
   async submitIncident() {
     if (this.incidentForm.invalid && !this.selectedIncidentId) {
       this.error = 'Please provide a valid description.';
       return;
     }
 
-    const bystanderId = '5c21396c-cf5f-41c4-845b-6a76b258217b'; // Replace with auth
+    const bystanderId = '5c21396c-cf5f-41c4-845b-6a76b258217b'; // TODO: Replace with real auth
     if (!bystanderId) {
       this.error = 'You must be logged in to submit a report.';
       return;
@@ -128,22 +123,19 @@ export class ReportIncidentComponent {
 
     try {
       if (this.selectedIncidentId) {
-        // 🟢 Add photos to existing incident
+        // ✅ Update existing incident
         const payload = {
           bystanderId,
           photos: this.photoUrls,
+          videoUrl: null,
+          description: this.incidentForm.value.description || '',
         };
-
         await this.http
-          .put(
-            `${environment.api_url}api/incidents/${this.selectedIncidentId}/media`,
-            payload
-          )
+          .put(`${environment.api_url}api/incidents/${this.selectedIncidentId}/media`, payload)
           .toPromise();
-
-        this.message = 'Media added to existing incident successfully.';
+        this.message = 'Successfully added to existing incident.';
       } else {
-        // 🔴 Create a new incident
+        // 🆕 Create new incident
         const payload = {
           description: this.incidentForm.value.description,
           photos: this.photoUrls,
@@ -151,26 +143,25 @@ export class ReportIncidentComponent {
           lat: this.location.lat,
           lng: this.location.lng,
           bystanderId,
+          maxResponders: this.incidentForm.value.maxResponders, // ✅ FIXED
         };
-
-        await this.http
-          .post(`${environment.api_url}api/incidents`, payload)
-          .toPromise();
-
+        await this.http.post(`${environment.api_url}api/incidents`, payload).toPromise();
         this.message = 'New incident reported successfully.';
       }
 
-      // Reset
-      this.submitting = false;
-      this.incidentForm.reset();
+      this.incidentForm.reset({ maxResponders: 3 }); // ✅ Preserve default
       this.photoUrls = [];
       this.selectedIncidentId = null;
-      this.showExistingList = false;
+      await this.loadNearbyIncidents();
     } catch (err) {
       console.error('Error submitting incident', err);
       this.error = 'Error submitting incident. Please try again.';
     } finally {
       this.submitting = false;
     }
+  }
+
+  openPhoto(photoUrl: string) {
+    window.open(photoUrl, '_blank');
   }
 }
