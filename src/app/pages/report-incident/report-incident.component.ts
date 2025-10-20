@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { Geolocation } from '@capacitor/geolocation';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-report-incident',
@@ -23,10 +24,14 @@ export class ReportIncidentComponent implements OnInit {
   loadingIncidents = true;
   checkingLocation = true;
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {
+  constructor(
+    private fb: FormBuilder,
+    private http: HttpClient,
+    private router: Router
+  ) {
     this.incidentForm = this.fb.group({
       description: ['', [Validators.required, Validators.minLength(10)]],
-      maxResponders: [3, [Validators.required, Validators.min(1), Validators.max(10)]], // ✅ Reactive form field
+      maxResponders: [3, [Validators.required, Validators.min(1), Validators.max(10)]],
     });
   }
 
@@ -123,7 +128,7 @@ export class ReportIncidentComponent implements OnInit {
 
     try {
       if (this.selectedIncidentId) {
-        // ✅ Update existing incident
+        // ✅ Add media or update existing incident
         const payload = {
           bystanderId,
           photos: this.photoUrls,
@@ -133,9 +138,10 @@ export class ReportIncidentComponent implements OnInit {
         await this.http
           .put(`${environment.api_url}api/incidents/${this.selectedIncidentId}/media`, payload)
           .toPromise();
+
         this.message = 'Successfully added to existing incident.';
       } else {
-        // 🆕 Create new incident
+        // 🆕 Create a new incident
         const payload = {
           description: this.incidentForm.value.description,
           photos: this.photoUrls,
@@ -143,15 +149,29 @@ export class ReportIncidentComponent implements OnInit {
           lat: this.location.lat,
           lng: this.location.lng,
           bystanderId,
-          maxResponders: this.incidentForm.value.maxResponders, // ✅ FIXED
+          maxResponders: this.incidentForm.value.maxResponders,
         };
-        await this.http.post(`${environment.api_url}api/incidents`, payload).toPromise();
+
+        const res: any = await this.http
+          .post(`${environment.api_url}api/incidents`, payload)
+          .toPromise();
+
         this.message = 'New incident reported successfully.';
+
+        // ✅ Navigate directly to the live status page
+        if (res && res.incident._id) {
+          this.router.navigate(['/d/incident-status', res.incident._id]);
+        } else if (res && res.incident.id) {
+          this.router.navigate(['/d/incident-status', res.incident.id]);
+        }
       }
 
-      this.incidentForm.reset({ maxResponders: 3 }); // ✅ Preserve default
+      // Reset form after submission
+      this.incidentForm.reset({ maxResponders: 3 });
       this.photoUrls = [];
       this.selectedIncidentId = null;
+
+      // Reload nearby incidents
       await this.loadNearbyIncidents();
     } catch (err) {
       console.error('Error submitting incident', err);

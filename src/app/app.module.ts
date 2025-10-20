@@ -20,6 +20,10 @@ import { SearchIPPipe } from './pipes/searchip.pipe';
 import { MainBluetoothPageComponent } from './pages/main-bluetooth-page/main-bluetooth-page.component';
 import { FileUploaderComponent } from './components/file-uploader/file-uploader.component';
 import { ReportIncidentComponent } from './pages/report-incident/report-incident.component';
+import { IncidentStatusComponent } from './pages/incident-status/incident-status.component';
+import { GoogleMapsModule } from '@angular/google-maps';
+import { DashboardComponent } from './pages/dashboard/dashboard.component';
+import { DonationPageComponent } from './pages/donation-page/donation-page.component';
 
 
 @NgModule({
@@ -27,7 +31,10 @@ import { ReportIncidentComponent } from './pages/report-incident/report-incident
     ModalComponent,
     MainBluetoothPageComponent,
     FileUploaderComponent,
-    ReportIncidentComponent],
+    ReportIncidentComponent,
+    IncidentStatusComponent,
+  DashboardComponent,
+DonationPageComponent],
   imports: [
     AppRoutingModule,
     HttpClientModule,
@@ -37,7 +44,8 @@ import { ReportIncidentComponent } from './pages/report-incident/report-incident
     ReactiveFormsModule,
     FormsModule,
     CommonModule,
-    SearchPipe
+    SearchPipe,
+    GoogleMapsModule
 ],
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },AlertService, SearchPipe, ModalService, SearchIPPipe],

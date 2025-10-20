@@ -1,3 +1,5 @@
 export enum RouteNames {
-  ReportIncident=''
+  Dashboard='d',
+  ReportIncident='reportIncident',
+  IncidentStatus='incident-status/:id'
 }
