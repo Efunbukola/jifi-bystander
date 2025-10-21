@@ -1,36 +1,97 @@
 <app-container>
   <div class="overflow-auto">
-  <router-outlet></router-outlet>
+    <router-outlet></router-outlet>
   </div>
 </app-container>
 
-<div class="bg-white border-t border-gray-200 dark:border-gray-700 fixed bottom-0 w-full">
-  <ul class="flex justify-evenly -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400">
-    <!-- Report Incident Tab -->
+<!-- Bottom Navigation -->
+<div
+  class="bg-white dark:bg-neutral-900 border-t border-gray-200 dark:border-gray-700 fixed bottom-0 w-full z-50"
+>
+  <ul
+    class="flex justify-evenly text-sm font-medium text-center text-gray-500 dark:text-gray-400"
+  >
+    <!-- 🆘 Report Incident Tab -->
     <li>
-      <a 
+      <a
         [routerLink]="['/d/report-incident']"
-        [ngClass]="router.url.includes('/d/report-incident') ? 'text-blue-600 fill-blue-600' : 'text-gray-400 fill-gray-400'"
-        class="flex flex-col items-center justify-center p-4 border-b-2 border-transparent rounded-t-lg group text-center"
+        class="flex flex-col items-center justify-center p-4 group transition-colors duration-200"
+        [ngClass]="
+          router.url.includes('/d/report-incident')
+            ? 'text-accent-green-700'
+            : 'text-gray-400'
+        "
       >
-        <svg class="w-6 h-6 group-hover:fill-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-          <path d="M480-80q-83 0-141.5-58.5T280-280v-80h80v80q0 50 35 85t85 35q51 0 85.5-35T600-280v-80h80v80q0 83-58.5 141.5T480-80Zm-40-240v-360h80v360h-80Zm0-440v-80h80v80h-80Z"/>
+        <!-- Inline emergency icon -->
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          height="24"
+          viewBox="0 -960 960 960"
+          width="24"
+          class="w-6 h-6 mb-1 transition-all duration-200"
+          [attr.fill]="
+            router.url.includes('/d/report-incident')
+              ? '#15803d'
+              : '#9ca3af'
+          "
+        >
+          <path
+            d="M200-160v-80h64l79-263q8-26 29.5-41.5T420-560h120q26 0 47.5 15.5T617-503l79 263h64v80H200Zm148-80h264l-72-240H420l-72 240Zm92-400v-200h80v200h-80Zm238 99-57-57 142-141 56 56-141 142Zm42 181v-80h200v80H720ZM282-541 141-683l56-56 142 141-57 57ZM40-360v-80h200v80H40Zm440 120Z"
+          />
         </svg>
-        <span class="group-hover:text-blue-600">Report</span>
+
+        <span
+          class="text-xs font-semibold transition-colors duration-200"
+          [ngClass]="
+            router.url.includes('/d/report-incident')
+              ? 'text-accent-green-700'
+              : 'text-gray-400'
+          "
+        >
+          Report
+        </span>
       </a>
     </li>
 
-    <!-- Donations Tab -->
+    <!-- 🤝 Donations Tab -->
     <li>
       <a
         [routerLink]="['/d/donations']"
-        [ngClass]="router.url.includes('/d/donations') ? 'text-blue-600 fill-blue-600' : 'text-gray-400 fill-gray-400'"
-        class="flex flex-col items-center justify-center p-4 border-b-2 border-transparent rounded-t-lg group text-center"
+        class="flex flex-col items-center justify-center p-4 group transition-colors duration-200"
+        [ngClass]="
+          router.url.includes('/d/donations')
+            ? 'text-accent-green-700'
+            : 'text-gray-400'
+        "
       >
-        <svg class="w-6 h-6 group-hover:fill-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-          <path d="M480-120q-66 0-113-47t-47-113q0-47 23-87.5t62-65.5q-4-16-5-32.5t1-33.5q-4 1-8 1.5t-8 .5q-83 0-141.5-58.5T185-660q0-83 58.5-141.5T385-860h190q83 0 141.5 58.5T775-660q0 71-45.5 125T618-460q0 18-2 34.5t-6 33.5q39 25 61.5 65t22.5 87q0 66-47 113t-113 47Z"/>
+        <!-- Inline hand package icon -->
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          height="24"
+          viewBox="0 -960 960 960"
+          width="24"
+          class="w-6 h-6 mb-1 transition-all duration-200"
+          [attr.fill]="
+            router.url.includes('/d/donations')
+              ? '#15803d'
+              : '#9ca3af'
+          "
+        >
+          <path
+            d="M600-800H360v280h240v-280Zm200 0H680v280h120v-280ZM575-440H320v240h222q21 0 40.5-7t35.5-21l166-137q-8-8-18-12t-21-6q-17-3-33 1t-30 15l-108 87H400v-80h146l44-36q5-3 7.5-8t2.5-11q0-10-7.5-17.5T575-440Zm-335 0h-80v280h80v-280Zm40 0v-360q0-33 23.5-56.5T360-880h440q33 0 56.5 23.5T880-800v280q0 33-23.5 56.5T800-440H280ZM240-80h-80q-33 0-56.5-23.5T80-160v-280q0-33 23.5-56.5T160-520h415q85 0 164 29t127 98l27 41-223 186q-27 23-60 34.5T542-120H309q-11 18-29 29t-40 11Z"
+          />
         </svg>
-        <span class="group-hover:text-blue-600">Donations</span>
+
+        <span
+          class="text-xs font-semibold transition-colors duration-200"
+          [ngClass]="
+            router.url.includes('/d/donations')
+              ? 'text-accent-green-700'
+              : 'text-gray-400'
+          "
+        >
+          Donate
+        </span>
       </a>
     </li>
   </ul>

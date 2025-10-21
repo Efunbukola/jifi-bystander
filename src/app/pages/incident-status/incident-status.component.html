@@ -1,74 +1,143 @@
-<div class="max-w-3xl mx-auto p-6 overflow-y-scroll h-screen">
-  <h1 class="text-2xl font-bold mb-4 text-gray-800">Incident Status</h1>
+<div class="flex flex-col overflow-y-scroll h-screen pb-[78px]">
 
-  <!-- Loading / Error states -->
-  <div *ngIf="loading" class="text-gray-600 text-center">Loading live updates...</div>
-  <div *ngIf="error" class="text-red-600 text-center font-medium">{{ error }}</div>
-
-  <!-- Main content -->
-  <div *ngIf="!loading && incident" class="space-y-5">
-    <!-- Map -->
-    <div class="border border-gray-200 rounded-lg shadow-md overflow-hidden h-80">
-      <google-map
-        height="100%"
-        width="100%"
-        [center]="center"
-        [zoom]="zoom"
-        [options]="{ mapTypeControl: false }"
+  <!-- Header -->
+  <nav class="bg-white flex items-center justify-start">
+    <div
+      class="flex items-center justify-start p-4 hover:bg-gray-100 rounded-full cursor-pointer"
+      [routerLink]="['/d/report-incident']"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        height="24px"
+        viewBox="0 -960 960 960"
+        width="24px"
+        fill="currentColor"
       >
-        <map-marker
-          *ngFor="let m of markers"
-          [position]="m.position"
-          [label]="m.label"
-        ></map-marker>
-      </google-map>
+        <path
+          d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z"
+        />
+      </svg>
     </div>
 
-    <!-- Status Info -->
-    <div class="bg-gray-50 p-4 rounded-md border border-gray-200">
-      <p class="text-gray-700 text-sm">
-        <strong>Status:</strong>
-        <span
-          [ngClass]="{
-            'text-green-700': incident.status === 'open',
-            'text-yellow-600': incident.status === 'claimed',
-            'text-gray-500': incident.status === 'closed'
-          }"
+    <!-- Ellipsized Title -->
+    <div
+      class="text-base font-bold pr-4 truncate max-w-[80%] text-gray-800"
+    >
+      Incident status
+    </div>
+  </nav>
+
+  <!-- Loading / Error -->
+  <div *ngIf="loading" class="flex items-center justify-center gap-2 text-gray-600 text-sm my-4">
+    <svg
+      class="w-5 h-5 text-gray-300 animate-spin fill-green-700"
+      viewBox="0 0 100 101"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M100 50.5908C100 78.2051 77.6142 
+        100.591 50 100.591C22.3858 100.591 
+        0 78.2051 0 50.5908C0 22.9766 22.3858 
+        0.59082 50 0.59082C77.6142 0.59082 
+        100 22.9766 100 50.5908ZM9.08144 
+        50.5908C9.08144 73.1895 27.4013 
+        91.5094 50 91.5094C72.5987 91.5094 
+        90.9186 73.1895 90.9186 50.5908C90.9186 
+        27.9921 72.5987 9.67226 50 9.67226C27.4013 
+        9.67226 9.08144 27.9921 9.08144 50.5908Z"
+        fill="currentColor"
+      />
+      <path
+        d="M93.9676 39.0409C96.393 38.4038 
+        97.8624 35.9116 97.0079 33.5539C95.2932 
+        28.8227 92.871 24.3692 89.8167 20.348C85.8452 
+        15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 
+        4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 
+        0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 
+        1.69328 37.813 4.19778 38.4501 6.62326C39.0873 
+        9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 
+        9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 
+        10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 
+        17.9648 79.3347 21.5619 82.5849 25.841C84.9175 
+        28.9121 86.7997 32.2913 88.1811 35.8758C89.083 
+        38.2158 91.5421 39.6781 93.9676 39.0409Z"
+        fill="currentFill"
+      />
+    </svg>
+    <span>Loading incident details...</span>
+  </div>
+
+  <div *ngIf="error" class="text-red-600 text-center font-medium my-4">
+    {{ error }}
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!loading && incident" class="space-y-8 p-4 pb-24">
+
+      <!-- Description -->
+    <section>
+      <h2 class="text-lg font-semibold text-gray-800 mb-2">Description</h2>
+      <div class="bg-gray-50 border border-gray-200 rounded-md p-4 shadow-sm text-gray-700 text-sm leading-relaxed">
+        {{ incident?.incident?.description }}
+      </div>
+    </section>
+
+    
+    <!-- Location -->
+    <section>
+      <h2 class="text-lg font-semibold text-gray-800 mb-2">Location</h2>
+      <div class="border border-gray-200 rounded-lg shadow-sm overflow-hidden h-80">
+        <google-map
+          height="100%"
+          width="100%"
+          [center]="center"
+          [zoom]="zoom"
+          [options]="{ mapTypeControl: false }"
         >
-          {{ incident.status | uppercase }}
-        </span>
-      </p>
+          <map-marker
+            *ngFor="let m of markers"
+            [position]="m.position"
+            [label]="m.label"
+          ></map-marker>
+        </google-map>
+      </div>
+    </section>
 
-      <p class="text-gray-700 text-sm mt-1">
-        <strong>Responders:</strong>
-        {{ incident.responderCount || 0 }}/{{ incident.maxResponders }}
-      </p>
-    </div>
+    <!-- Photos -->
+    <section *ngIf="incident?.incident?.photos?.length > 0">
+      <h2 class="text-lg font-semibold text-gray-800 mb-2">Photos</h2>
+      <div class="grid grid-cols-3 gap-3">
+        <img
+          *ngFor="let photo of incident?.incident?.photos"
+          [src]="photo"
+          alt="Incident photo"
+          class="w-full h-32 object-cover rounded-lg border border-gray-200 hover:scale-105 transition-transform cursor-pointer"
+          (click)="openPhoto(photo)"
+        />
+      </div>
+    </section>
+    
 
-    <!-- Responders List -->
-    <div class="mt-6">
+    <!-- Live Responders -->
+    <section>
       <h2 class="text-lg font-semibold text-gray-800 mb-2">Live Responders</h2>
 
-      <div
-        *ngIf="responders.length === 0"
-        class="text-sm text-gray-500 italic"
-      >
+      <div *ngIf="responders.length === 0" class="text-sm text-gray-500 italic">
         No responders have accepted this incident yet.
       </div>
 
-      <ul *ngIf="responders.length > 0" class="space-y-2 pb-40">
+      <ul *ngIf="responders.length > 0" class="space-y-2">
         <li
           *ngFor="let r of responders"
           class="text-sm bg-white border border-gray-200 p-3 rounded-md shadow-sm flex justify-between"
         >
-          <span>
-            🚑 <strong>{{ r.name || 'Responder' }}</strong>
-          </span>
+          <span>🚑 <strong>{{ r.name || 'Responder' }}</strong></span>
           <span class="text-gray-500 text-xs">
             {{ r.online ? '🟢 Online' : '⚫ Offline' }}
           </span>
         </li>
       </ul>
-    </div>
+    </section>
   </div>
 </div>

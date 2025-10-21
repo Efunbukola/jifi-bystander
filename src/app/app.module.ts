@@ -24,6 +24,8 @@ import { IncidentStatusComponent } from './pages/incident-status/incident-status
 import { GoogleMapsModule } from '@angular/google-maps';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { DonationPageComponent } from './pages/donation-page/donation-page.component';
+import { StripeDonationComponent } from './pages/stripe-donation/stripe-donation.component';
+import { IncidentDonateComponent } from './pages/incident-donate/incident-donate.component';
 
 
 @NgModule({
@@ -34,6 +36,8 @@ import { DonationPageComponent } from './pages/donation-page/donation-page.compo
     ReportIncidentComponent,
     IncidentStatusComponent,
   DashboardComponent,
+  StripeDonationComponent,
+  IncidentDonateComponent,
 DonationPageComponent],
   imports: [
     AppRoutingModule,

@@ -57,4 +57,10 @@ export class DonationPageComponent implements OnInit {
       alert('Donation failed. Please try again.');
     }
   }
+
+  getDonationPercent(inc: any): number {
+  if (!inc.cost || inc.cost === 0) return 0;
+  return Math.min(100, Math.round((inc.totalDonated / inc.cost) * 100));
+}
+
 }

@@ -5,6 +5,7 @@ import { ReportIncidentComponent } from './pages/report-incident/report-incident
 import { IncidentStatusComponent } from './pages/incident-status/incident-status.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { DonationPageComponent } from './pages/donation-page/donation-page.component';
+import { IncidentDonateComponent } from './pages/incident-donate/incident-donate.component';
 
 const routes: Routes = [
   {
@@ -17,15 +18,19 @@ const routes: Routes = [
       },
       { path: 'donations', component: DonationPageComponent },
       {
-        path: 'incident-status/:id',        
-        component: IncidentStatusComponent
-      },
-      {
         path: '',                        // default to report incident
         redirectTo: 'report-incident',
         pathMatch: 'full'
       }
     ]
+  },
+  {
+        path: 'incident-status/:id',        
+        component: IncidentStatusComponent
+  },
+  {
+  path: 'd/donate/:id',
+  component: IncidentDonateComponent
   },
   { path: '**', redirectTo: RouteNames.Dashboard } // fallback
 ];

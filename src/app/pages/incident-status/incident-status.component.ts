@@ -128,4 +128,9 @@ export class IncidentStatusComponent implements OnInit, OnDestroy {
 
     this.markers = markers;
   }
+
+    openPhoto(photoUrl: string) {
+    window.open(photoUrl, '_blank');
+  }
+
 }

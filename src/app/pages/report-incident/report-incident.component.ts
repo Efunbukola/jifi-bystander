@@ -140,6 +140,9 @@ export class ReportIncidentComponent implements OnInit {
           .toPromise();
 
         this.message = 'Successfully added to existing incident.';
+
+        this.router.navigate(['/incident-status', this.selectedIncidentId]);
+
       } else {
         // 🆕 Create a new incident
         const payload = {
@@ -160,9 +163,9 @@ export class ReportIncidentComponent implements OnInit {
 
         // ✅ Navigate directly to the live status page
         if (res && res.incident._id) {
-          this.router.navigate(['/d/incident-status', res.incident._id]);
+          this.router.navigate(['/incident-status', res.incident._id]);
         } else if (res && res.incident.id) {
-          this.router.navigate(['/d/incident-status', res.incident.id]);
+          this.router.navigate(['/incident-status', res.incident.id]);
         }
       }
 
@@ -184,4 +187,9 @@ export class ReportIncidentComponent implements OnInit {
   openPhoto(photoUrl: string) {
     window.open(photoUrl, '_blank');
   }
+
+  openIncident(incidentId: string) {
+  this.router.navigate([`/incident-status`, incidentId]);
+  }
+
 }
