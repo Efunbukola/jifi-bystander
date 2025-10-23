@@ -1,5 +1,6 @@
 import { Component, Input, AfterViewInit, OnDestroy, ElementRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { environment } from 'src/environments/environment';
 import { loadStripe, Stripe, StripeElements, StripePaymentElement } from '@stripe/stripe-js';
 
@@ -21,14 +22,14 @@ export class StripeDonationComponent implements AfterViewInit, OnDestroy {
   message = '';
   error = '';
 
-  constructor(private http: HttpClient, private el: ElementRef) {}
+  constructor(private http: HttpClient, private el: ElementRef, private router: Router) {}
 
   // ✅ Initialize Stripe after view loads
   async ngAfterViewInit() {
     this.stripe = await loadStripe(environment.stripe_public_key);
   }
 
-  // ✅ Step 1: Create a PaymentIntent from backend and mount payment UI
+  // ✅ Step 1: Create PaymentIntent from backend and mount payment UI
   async startPayment() {
     if (!this.amount || this.amount <= 0) {
       this.error = 'Please enter a valid amount.';
@@ -62,22 +63,19 @@ export class StripeDonationComponent implements AfterViewInit, OnDestroy {
   async mountCard() {
     if (!this.stripe || !this.clientSecret) return;
 
-    // Check if element exists before mounting
     const container = this.el.nativeElement.querySelector('#payment-element');
     if (!container) {
-      console.warn('⚠️ Payment element container not found — deferring mount...');
-      // Delay mounting slightly to allow DOM to render
+      console.warn('⚠️ Payment element container not found — retrying...');
       setTimeout(() => this.mountCard(), 300);
       return;
     }
 
-    // Create and mount Stripe Payment Element
     this.elements = this.stripe.elements({ clientSecret: this.clientSecret });
     this.paymentElement = this.elements.create('payment');
     this.paymentElement.mount('#payment-element');
   }
 
-  // ✅ Step 3: Confirm payment when user submits
+  // ✅ Step 3: Confirm payment and navigate back
   async confirmPayment() {
     if (!this.stripe || !this.clientSecret) return;
 
@@ -98,6 +96,10 @@ export class StripeDonationComponent implements AfterViewInit, OnDestroy {
       this.error = error.message || 'Payment failed.';
     } else if (paymentIntent && paymentIntent.status === 'succeeded') {
       this.message = 'Donation successful 💚';
+      // ✅ Navigate back to Donations after 1.5s
+      setTimeout(() => {
+        this.router.navigate(['/d/donations']);
+      }, 1500);
     }
 
     this.loading = false;
