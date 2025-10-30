@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { io, Socket } from 'socket.io-client';
 import { GoogleMap } from '@angular/google-maps';
+import { AuthService } from '../../services/auth.service'; // ✅ Import AuthService
 
 @Component({
   selector: 'app-incident-status',
@@ -24,27 +25,40 @@ export class IncidentStatusComponent implements OnInit, OnDestroy {
   zoom = 14;
   markers: any[] = [];
 
-  constructor(private route: ActivatedRoute, private http: HttpClient) {}
+  constructor(
+    private route: ActivatedRoute,
+    private http: HttpClient,
+    private auth: AuthService // ✅ Inject AuthService
+  ) {}
 
   async ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
-    const bystanderId = '5c21396c-cf5f-41c4-845b-6a76b258217b'; // TODO: Replace with real auth
+    const user = this.auth.getUser(); // ✅ Get current user
+    const bystanderId = user?.bystanderId;
 
     if (!id) {
       this.error = 'Invalid incident ID';
       return;
     }
 
+    if (!bystanderId) {
+      console.error('[IncidentStatus] Missing bystanderId — user not authenticated.');
+      this.error = 'You must be logged in to view incident status.';
+      this.loading = false;
+      return;
+    }
+
     try {
-      // Initialize Socket.io
+      console.log('[IncidentStatus] Connecting to socket with bystanderId:', bystanderId);
       this.socket = io(environment.api_url, { transports: ['websocket'] });
 
       // 1️⃣ Join the room for this incident
       this.socket.emit('watchIncident', { incidentId: id, bystanderId });
+      console.log('[IncidentStatus] Watching incident:', id);
 
-      // 2️⃣ Get initial snapshot when joining
+      // 2️⃣ Get initial snapshot
       this.socket.on('incidentSnapshot', (data) => {
-        console.log('📡 Snapshot received:', data);
+        console.log('[IncidentStatus] 📡 Snapshot received:', data);
         this.incident = data;
         this.responders = data.responders || [];
         this.updateMapMarkers();
@@ -53,9 +67,9 @@ export class IncidentStatusComponent implements OnInit, OnDestroy {
 
       // 3️⃣ A new responder joins
       this.socket.on('responderJoined', (data) => {
-        if (!this.incident || data.incidentId !== this.incident.incidentId && data.incidentId !== this.incident.incidentId?._id) return;
+        if (!this.incident || data.incidentId !== this.incident._id) return;
 
-        console.log('🚑 New responder joined:', data.responder);
+        console.log('[IncidentStatus] 🚑 New responder joined:', data.responder);
         const existing = this.responders.find(
           (r) => r.responderId === data.responder.responderId
         );
@@ -68,8 +82,9 @@ export class IncidentStatusComponent implements OnInit, OnDestroy {
 
       // 4️⃣ Responder location updates
       this.socket.on('responderLocationUpdate', (data) => {
-        if (!this.incident || data.incidentId !== this.incident.incidentId && data.incidentId !== this.incident.incidentId?._id) return;
+        if (!this.incident || data.incidentId !== this.incident._id) return;
 
+        console.log('[IncidentStatus] 📍 Responder location update:', data);
         const existing = this.responders.find(
           (r) => r.responderId === data.responderId
         );
@@ -85,21 +100,30 @@ export class IncidentStatusComponent implements OnInit, OnDestroy {
         this.updateMapMarkers();
       });
 
-      // 5️⃣ Handle incident closed (optional future)
+      // 5️⃣ Handle incident closed
       this.socket.on('incidentClosed', (data) => {
-        if (this.incident && data.incidentId === this.incident.incidentId) {
+        if (this.incident && data.incidentId === this.incident._id) {
+          console.log('[IncidentStatus] 🚨 Incident closed:', data);
           this.incident.status = 'closed';
         }
       });
+
+      // 6️⃣ Handle disconnects
+      this.socket.on('disconnect', () => {
+        console.warn('[IncidentStatus] Socket disconnected.');
+      });
     } catch (err) {
-      console.error('Error connecting to socket:', err);
+      console.error('[IncidentStatus] Error connecting to socket:', err);
       this.error = 'Unable to connect to live updates.';
       this.loading = false;
     }
   }
 
   ngOnDestroy() {
-    if (this.socket) this.socket.disconnect();
+    if (this.socket) {
+      console.log('[IncidentStatus] Disconnecting socket...');
+      this.socket.disconnect();
+    }
   }
 
   updateMapMarkers() {
@@ -121,16 +145,20 @@ export class IncidentStatusComponent implements OnInit, OnDestroy {
         const [rlng, rlat] = r.location.coordinates;
         markers.push({
           position: { lat: rlat, lng: rlng },
-          label: { text: `🚑 ${r.name || 'Responder'}`, className: 'text-green-700' },
+          label: {
+            text: `🚑 ${r.name || 'Responder'}`,
+            className: 'text-green-700',
+          },
         });
       }
     }
 
     this.markers = markers;
+    console.log('[IncidentStatus] 🗺️ Map markers updated:', this.markers);
   }
 
-    openPhoto(photoUrl: string) {
+  openPhoto(photoUrl: string) {
+    console.log('[IncidentStatus] Opening photo:', photoUrl);
     window.open(photoUrl, '_blank');
   }
-
 }

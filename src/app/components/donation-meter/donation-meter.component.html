@@ -1,0 +1,38 @@
+<div class="donation-meter">
+  <!-- Header -->
+  <div class="flex justify-between text-sm mb-1">
+    <span class="font-medium text-gray-700">Goal: ${{ goal }}</span>
+    <span class="font-medium text-gray-700">Raised: ${{ raised }}</span>
+  </div>
+
+  <!-- Thermometer container -->
+  <div class="meter-container">
+    <!-- Bulb + tube connected -->
+    <div class="bulb">
+      <div class="bulb-fill"></div>
+    </div>
+
+    <div class="tube">
+      <div
+        class="fill transition-all duration-1000 ease-out"
+        [style.width.%]="percent"
+      ></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="flex justify-between text-xs text-gray-500 mt-1">
+    <span>{{ percent }}% funded</span>
+    <span>
+      Remaining:
+      <span
+        [ngClass]="{
+          'text-green-700 font-semibold': getRemaining() <= 0,
+          'text-red-600 font-semibold': getRemaining() > 0
+        }"
+      >
+        ${{ getRemaining() }}
+      </span>
+    </span>
+  </div>
+</div>

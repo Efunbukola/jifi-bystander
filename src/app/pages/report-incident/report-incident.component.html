@@ -201,6 +201,21 @@
       </div>
     </div>
 
+
+    <!-- 🎥 Video Upload -->
+<div class="mt-6">
+  <label class="block mb-1 text-gray-700 font-medium">
+    {{ selectedIncidentId ? 'Add a Video Clip (optional)' : 'Attach a Short Video (optional)' }}
+  </label>
+
+  <app-video-uploader
+    (uploadSuccessfulEvent)="onVideoUploaded($event)"
+    (uploadErrorEvent)="onUploadError()"
+  ></app-video-uploader>
+
+</div>
+    
+
      <!-- Description field (always visible) -->
     <div>
       <label class="block mb-1 text-gray-700 font-medium">Description</label>

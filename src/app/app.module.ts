@@ -35,6 +35,8 @@ import { AuthService } from './services/auth.service';
 import { AuthGuard } from './gaurds/auth.guard';
 import { UnauthGuard } from './gaurds/unauth.guard';
 import { BystanderProfileComponent } from './pages/bystander-profile/bystander-profile.component';
+import { VideoUploaderComponent } from './components/video-uploader/video-uploader.component';
+import { DonationMeterComponent } from './components/donation-meter/donation-meter.component';
 
 @NgModule({
   declarations: [
@@ -52,7 +54,9 @@ import { BystanderProfileComponent } from './pages/bystander-profile/bystander-p
     DonationPageComponent,
     LoginComponent, 
     SignupComponent, 
-    BystanderProfileComponent
+    BystanderProfileComponent,
+    VideoUploaderComponent,
+    DonationMeterComponent
   ],
   imports: [
     BrowserModule,

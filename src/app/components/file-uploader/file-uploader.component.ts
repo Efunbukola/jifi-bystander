@@ -47,7 +47,7 @@ export class FileUploaderComponent {
           formData.append('file', file, file.name);
           formData.append('public_id', `abstract-${timeStamp}`);
           formData.append('upload_preset', 'ml_default');
-          formData.append("asset_folder", "iixi_abstracts");
+          formData.append("asset_folder", "jifi_photos");
           
           console.log(fileList);
 

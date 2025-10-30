@@ -10,6 +10,7 @@ import { AuthGuard } from './gaurds/auth.guard';
 import { UnauthGuard } from './gaurds/unauth.guard';
 import { NgModule } from '@angular/core';
 import { BystanderProfileComponent } from './pages/bystander-profile/bystander-profile.component';
+import { IncidentDonateComponent } from './pages/incident-donate/incident-donate.component';
 
 
 const routes: Routes = [
@@ -27,6 +28,10 @@ const routes: Routes = [
     { path: '', redirectTo: 'report-incident', pathMatch: 'full' },
   ],
 },
+ {
+  path: 'd/donate/:id',
+  component: IncidentDonateComponent
+  },
 
   { path: 'incident-status/:id', component: IncidentStatusComponent },
   { path: '**', redirectTo: '/login' },
@@ -37,4 +42,6 @@ const routes: Routes = [
   exports: [RouterModule]
 })
 export class AppRoutingModule {}
+
+
 

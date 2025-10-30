@@ -1,7 +1,7 @@
-<div class="flex flex-col overflow-y-scroll h-screen pb-[78px]">
+<div class="flex flex-col overflow-y-scroll h-screen pb-[78px] bg-gray-50">
 
   <!-- Header -->
-  <nav class="bg-white flex items-center justify-start">
+  <nav class="bg-white flex items-center justify-start border-b border-gray-200">
     <div
       class="flex items-center justify-start p-4 hover:bg-gray-100 rounded-full cursor-pointer"
       [routerLink]="['/d/report-incident']"
@@ -19,11 +19,8 @@
       </svg>
     </div>
 
-    <!-- Ellipsized Title -->
-    <div
-      class="text-base font-bold pr-4 truncate max-w-[80%] text-gray-800"
-    >
-      Incident status
+    <div class="text-base font-bold pr-4 truncate max-w-[80%] text-gray-800">
+      Incident Details
     </div>
   </nav>
 
@@ -73,18 +70,22 @@
   </div>
 
   <!-- Main Content -->
-  <div *ngIf="!loading && incident" class="space-y-8 p-4 pb-24">
+  <div *ngIf="!loading && incident" class="space-y-6 p-4 pb-24">
 
-      <!-- Description -->
-    <section>
-      <h2 class="text-lg font-semibold text-gray-800 mb-2">Description</h2>
-      <div class="bg-gray-50 border border-gray-200 rounded-md p-4 shadow-sm text-gray-700 text-sm leading-relaxed">
-        {{ incident?.incident?.description }}
-      </div>
+    <!-- 🧾 Description -->
+    <section class="bg-white border border-gray-200 rounded-md p-4 shadow-sm">
+      <h1 class="text-xl font-bold text-gray-900 mb-2">
+        {{ incident.incident.description }}
+      </h1>
+      <p class="text-sm text-gray-600 mb-1">
+        <strong>Date:</strong> {{ incident.incident.createdAt | date: 'medium' }}
+      </p>
+      <p class="text-sm text-gray-600">
+        <strong>Address:</strong> {{ incident.incident.address || 'Address unavailable' }}
+      </p>
     </section>
 
-    
-    <!-- Location -->
+    <!-- 🗺️ Map -->
     <section>
       <h2 class="text-lg font-semibold text-gray-800 mb-2">Location</h2>
       <div class="border border-gray-200 rounded-lg shadow-sm overflow-hidden h-80">
@@ -93,7 +94,7 @@
           width="100%"
           [center]="center"
           [zoom]="zoom"
-          [options]="{ mapTypeControl: false }"
+          [options]="{ mapTypeControl: false, streetViewControl: false, fullscreenControl: false }"
         >
           <map-marker
             *ngFor="let m of markers"
@@ -104,24 +105,14 @@
       </div>
     </section>
 
-    <!-- Photos -->
-    <section *ngIf="incident?.incident?.photos?.length > 0">
-      <h2 class="text-lg font-semibold text-gray-800 mb-2">Photos</h2>
-      <div class="grid grid-cols-3 gap-3">
-        <img
-          *ngFor="let photo of incident?.incident?.photos"
-          [src]="photo"
-          alt="Incident photo"
-          class="w-full h-32 object-cover rounded-lg border border-gray-200 hover:scale-105 transition-transform cursor-pointer"
-          (click)="openPhoto(photo)"
-        />
-      </div>
-    </section>
-    
-
-    <!-- Live Responders -->
+    <!-- 🧍 Live Responders -->
     <section>
-      <h2 class="text-lg font-semibold text-gray-800 mb-2">Live Responders</h2>
+      <h2 class="text-lg font-semibold text-gray-800 mb-1">
+        Live Responders
+      </h2>
+      <p class="text-sm text-gray-600 mb-3">
+        {{ responders.length }} of {{ incident.maxResponders || 0 }} responders
+      </p>
 
       <div *ngIf="responders.length === 0" class="text-sm text-gray-500 italic">
         No responders have accepted this incident yet.
@@ -130,7 +121,7 @@
       <ul *ngIf="responders.length > 0" class="space-y-2">
         <li
           *ngFor="let r of responders"
-          class="text-sm bg-white border border-gray-200 p-3 rounded-md shadow-sm flex justify-between"
+          class="bg-white border border-gray-200 p-3 rounded-md shadow-sm flex justify-between items-center text-sm"
         >
           <span>🚑 <strong>{{ r.name || 'Responder' }}</strong></span>
           <span class="text-gray-500 text-xs">
@@ -139,5 +130,20 @@
         </li>
       </ul>
     </section>
+
+    <!-- 📸 Photos -->
+    <section *ngIf="incident.photos?.length > 0">
+      <h2 class="text-lg font-semibold text-gray-800 mb-2">Photos</h2>
+      <div class="grid grid-cols-3 gap-3">
+        <img
+          *ngFor="let photo of incident.photos"
+          [src]="photo"
+          alt="Incident photo"
+          class="w-full h-32 object-cover rounded-lg border border-gray-200 hover:scale-105 transition-transform cursor-pointer"
+          (click)="openPhoto(photo)"
+        />
+      </div>
+    </section>
+
   </div>
 </div>
