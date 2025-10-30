@@ -31,7 +31,8 @@ export class ReportIncidentComponent implements OnInit {
   ) {
     this.incidentForm = this.fb.group({
       description: ['', [Validators.required, Validators.minLength(10)]],
-      maxResponders: [3, [Validators.required, Validators.min(1), Validators.max(10)]],
+      severity: [5, [Validators.required, Validators.min(1), Validators.max(10)]],
+      numberOfCasualties: [1, [Validators.required, Validators.min(1)]],
     });
   }
 
@@ -140,9 +141,7 @@ export class ReportIncidentComponent implements OnInit {
           .toPromise();
 
         this.message = 'Successfully added to existing incident.';
-
         this.router.navigate(['/incident-status', this.selectedIncidentId]);
-
       } else {
         // 🆕 Create a new incident
         const payload = {
@@ -152,7 +151,8 @@ export class ReportIncidentComponent implements OnInit {
           lat: this.location.lat,
           lng: this.location.lng,
           bystanderId,
-          maxResponders: this.incidentForm.value.maxResponders,
+          severity: this.incidentForm.value.severity,
+          numberOfCasualties: this.incidentForm.value.numberOfCasualties,
         };
 
         const res: any = await this.http
@@ -160,8 +160,6 @@ export class ReportIncidentComponent implements OnInit {
           .toPromise();
 
         this.message = 'New incident reported successfully.';
-
-        // ✅ Navigate directly to the live status page
         if (res && res.incident._id) {
           this.router.navigate(['/incident-status', res.incident._id]);
         } else if (res && res.incident.id) {
@@ -169,12 +167,10 @@ export class ReportIncidentComponent implements OnInit {
         }
       }
 
-      // Reset form after submission
-      this.incidentForm.reset({ maxResponders: 3 });
+      this.incidentForm.reset({ severity: 5, numberOfCasualties: 1 });
       this.photoUrls = [];
       this.selectedIncidentId = null;
 
-      // Reload nearby incidents
       await this.loadNearbyIncidents();
     } catch (err) {
       console.error('Error submitting incident', err);
@@ -189,7 +185,6 @@ export class ReportIncidentComponent implements OnInit {
   }
 
   openIncident(incidentId: string) {
-  this.router.navigate([`/incident-status`, incidentId]);
+    this.router.navigate([`/incident-status`, incidentId]);
   }
-
 }
