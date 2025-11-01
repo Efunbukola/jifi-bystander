@@ -14,8 +14,8 @@ import { IncidentDonateComponent } from './pages/incident-donate/incident-donate
 
 
 const routes: Routes = [
-  { path: 'login', component: LoginComponent, canActivate: [UnauthGuard] },  // 🛡️
-  { path: 'signup', component: SignupComponent, canActivate: [UnauthGuard] }, // 🛡️
+  { path: 'login', component: LoginComponent, canActivate: [UnauthGuard] },  
+  { path: 'signup', component: SignupComponent, canActivate: [UnauthGuard] },
 
   {
   path: RouteNames.Dashboard,
