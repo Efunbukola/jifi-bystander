@@ -75,13 +75,13 @@
     <!-- 🧾 Description -->
     <section class="bg-white border border-gray-200 rounded-md p-4 shadow-sm">
       <h1 class="text-xl font-bold text-gray-900 mb-2">
-        {{ incident.incident.description }}
+        {{ incident.description }}
       </h1>
       <p class="text-sm text-gray-600 mb-1">
-        <strong>Date:</strong> {{ incident.incident.createdAt | date: 'medium' }}
+        <strong>Date:</strong> {{ incident.createdAt | date: 'medium' }}
       </p>
       <p class="text-sm text-gray-600">
-        <strong>Address:</strong> {{ incident.incident.address || 'Address unavailable' }}
+        <strong>Address:</strong> {{ incident.address || 'Address unavailable' }}
       </p>
     </section>
 
@@ -105,45 +105,53 @@
       </div>
     </section>
 
-    <!-- 🧍 Live Responders -->
-    <section>
-      <h2 class="text-lg font-semibold text-gray-800 mb-1">
-        Live Responders
-      </h2>
-      <p class="text-sm text-gray-600 mb-3">
-        {{ responders.length }} of {{ incident.maxResponders || 0 }} responders
-      </p>
+    <!-- responders section -->
+   <section>
+  <h2 class="text-lg font-semibold text-gray-800 mb-1">
+    Live Responders
+  </h2>
+  <p class="text-sm text-gray-600 mb-3">
+    {{ responders.length }} of {{ incident.maxResponders || 0 }} responders
+  </p>
 
-      <div *ngIf="responders.length === 0" class="text-sm text-gray-500 italic">
-        No responders have accepted this incident yet.
+  <div *ngIf="responders.length === 0" class="text-sm text-gray-500 italic">
+    No responders have accepted this incident yet.
+  </div>
+
+  <ul *ngIf="responders.length > 0" class="space-y-2">
+    <li
+      *ngFor="let r of responders"
+      class="bg-white border border-gray-200 p-3 rounded-md shadow-sm flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm"
+    >
+      <div>
+        🚑 <strong>{{ r.name || 'Responder' }}</strong>
+        <span *ngIf="r.eta?.etaText" class="ml-2 text-xs text-gray-600">
+          ⏱️ ETA: {{ r.eta.etaText }}
+        </span>
       </div>
 
-      <ul *ngIf="responders.length > 0" class="space-y-2">
-        <li
-          *ngFor="let r of responders"
-          class="bg-white border border-gray-200 p-3 rounded-md shadow-sm flex justify-between items-center text-sm"
-        >
-          <span>🚑 <strong>{{ r.name || 'Responder' }}</strong></span>
-          <span class="text-gray-500 text-xs">
-            {{ r.online ? '🟢 Online' : '⚫ Offline' }}
-          </span>
-        </li>
-      </ul>
-    </section>
+      <div class="text-xs text-gray-500 mt-1 sm:mt-0 flex items-center gap-2">
+        <span *ngIf="r.eta?.method">
+          🛞
+          {{
+            r.eta.method === 'driving'
+              ? 'Driving'
+              : r.eta.method === 'walking'
+              ? 'Walking'
+              : r.eta.method === 'bicycling'
+              ? 'Biking'
+              : r.eta.method === 'transit'
+              ? 'Public Transit'
+              : 'Unknown'
+          }}
+        </span>
 
-    <!-- 📸 Photos -->
-    <section *ngIf="incident.photos?.length > 0">
-      <h2 class="text-lg font-semibold text-gray-800 mb-2">Photos</h2>
-      <div class="grid grid-cols-3 gap-3">
-        <img
-          *ngFor="let photo of incident.photos"
-          [src]="photo"
-          alt="Incident photo"
-          class="w-full h-32 object-cover rounded-lg border border-gray-200 hover:scale-105 transition-transform cursor-pointer"
-          (click)="openPhoto(photo)"
-        />
+        <span>{{ r.online ? '🟢 Online' : '⚫ Offline' }}</span>
       </div>
-    </section>
+    </li>
+  </ul>
+</section>
+
 
   </div>
 </div>

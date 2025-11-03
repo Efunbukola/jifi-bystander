@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { io, Socket } from 'socket.io-client';
 import { GoogleMap } from '@angular/google-maps';
-import { AuthService } from '../../services/auth.service'; // ✅ Import AuthService
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-incident-status',
@@ -20,7 +20,7 @@ export class IncidentStatusComponent implements OnInit, OnDestroy {
   loading = true;
   error = '';
 
-  // Google Maps state
+  // Google Maps
   center: google.maps.LatLngLiteral = { lat: 0, lng: 0 };
   zoom = 14;
   markers: any[] = [];
@@ -28,12 +28,12 @@ export class IncidentStatusComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private http: HttpClient,
-    private auth: AuthService // ✅ Inject AuthService
+    private auth: AuthService
   ) {}
 
   async ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
-    const user = this.auth.getUser(); // ✅ Get current user
+    const user = this.auth.getUser();
     const bystanderId = user?.bystanderId;
 
     if (!id) {
@@ -42,88 +42,100 @@ export class IncidentStatusComponent implements OnInit, OnDestroy {
     }
 
     if (!bystanderId) {
-      console.error('[IncidentStatus] Missing bystanderId — user not authenticated.');
       this.error = 'You must be logged in to view incident status.';
       this.loading = false;
       return;
     }
 
     try {
-      console.log('[IncidentStatus] Connecting to socket with bystanderId:', bystanderId);
       this.socket = io(environment.api_url, { transports: ['websocket'] });
-
-      // 1️⃣ Join the room for this incident
       this.socket.emit('watchIncident', { incidentId: id, bystanderId });
-      console.log('[IncidentStatus] Watching incident:', id);
 
-      // 2️⃣ Get initial snapshot
+      // 1️⃣ Initial snapshot
       this.socket.on('incidentSnapshot', (data) => {
-        console.log('[IncidentStatus] 📡 Snapshot received:', data);
-        this.incident = data;
+        console.log('[IncidentStatus] Snapshot received:', data);
+        this.incident = data.incident;
         this.responders = data.responders || [];
+
+        // Merge ETA info from incident.responderEtas
+        if (this.incident?.responderEtas?.length) {
+          this.responders = this.responders.map((r) => {
+            const eta = this.incident.responderEtas.find(
+              (e: any) => e.responderId === r.responderId
+            );
+            return { ...r, eta };
+          });
+        }
+
         this.updateMapMarkers();
         this.loading = false;
       });
 
-      // 3️⃣ A new responder joins
+      // 2️⃣ New responder joined
       this.socket.on('responderJoined', (data) => {
         if (!this.incident || data.incidentId !== this.incident._id) return;
 
-        console.log('[IncidentStatus] 🚑 New responder joined:', data.responder);
+        console.log('[IncidentStatus] 🚑 Responder joined:', data);
         const existing = this.responders.find(
           (r) => r.responderId === data.responder.responderId
         );
-        if (!existing) this.responders.push(data.responder);
+
+        if (existing) {
+          existing.location = data.responder.location;
+          existing.eta = data.responder.eta;
+        } else {
+          this.responders.push({
+            ...data.responder,
+            eta: data.responder.eta,
+          });
+        }
 
         this.incident.responderCount = data.responderCount;
         this.incident.status = data.status;
         this.updateMapMarkers();
       });
 
-      // 4️⃣ Responder location updates
+      // 3️⃣ Location updates
       this.socket.on('responderLocationUpdate', (data) => {
         if (!this.incident || data.incidentId !== this.incident._id) return;
-
-        console.log('[IncidentStatus] 📍 Responder location update:', data);
         const existing = this.responders.find(
           (r) => r.responderId === data.responderId
         );
         if (existing) {
           existing.location = data.location;
-        } else {
-          this.responders.push({
-            responderId: data.responderId,
-            name: data.name,
-            location: data.location,
-          });
         }
         this.updateMapMarkers();
+      });
+
+      // 4️⃣ ETA updates (if backend sends updated ETA later)
+      this.socket.on('responderEtaUpdate', (data) => {
+        console.log('[IncidentStatus] ⏱️ ETA update received:', data);
+        const responder = this.responders.find(
+          (r) => r.responderId === data.responderId
+        );
+        if (responder) {
+          responder.eta = {
+            etaText: data.etaText,
+            method: data.method,
+          };
+        }
       });
 
       // 5️⃣ Handle incident closed
       this.socket.on('incidentClosed', (data) => {
         if (this.incident && data.incidentId === this.incident._id) {
-          console.log('[IncidentStatus] 🚨 Incident closed:', data);
           this.incident.status = 'closed';
         }
       });
-
-      // 6️⃣ Handle disconnects
-      this.socket.on('disconnect', () => {
-        console.warn('[IncidentStatus] Socket disconnected.');
-      });
     } catch (err) {
-      console.error('[IncidentStatus] Error connecting to socket:', err);
+      console.error('[IncidentStatus] Error connecting:', err);
       this.error = 'Unable to connect to live updates.';
       this.loading = false;
     }
   }
 
   ngOnDestroy() {
-    if (this.socket) {
-      console.log('[IncidentStatus] Disconnecting socket...');
-      this.socket.disconnect();
-    }
+    if (this.socket) this.socket.disconnect();
   }
 
   updateMapMarkers() {
@@ -131,7 +143,6 @@ export class IncidentStatusComponent implements OnInit, OnDestroy {
     const [lng, lat] = this.incident?.location?.coordinates || [0, 0];
     this.center = { lat, lng };
 
-    // 📍 Incident marker
     const markers: any[] = [
       {
         position: { lat, lng },
@@ -139,14 +150,14 @@ export class IncidentStatusComponent implements OnInit, OnDestroy {
       },
     ];
 
-    // 🚑 Responder markers
     for (const r of this.responders) {
       if (r.location?.coordinates) {
         const [rlng, rlat] = r.location.coordinates;
+        const etaLabel = r.eta?.etaText ? ` (${r.eta.etaText})` : '';
         markers.push({
           position: { lat: rlat, lng: rlng },
           label: {
-            text: `🚑 ${r.name || 'Responder'}`,
+            text: `🚑 ${r.name || 'Responder'}${etaLabel}`,
             className: 'text-green-700',
           },
         });
@@ -154,11 +165,9 @@ export class IncidentStatusComponent implements OnInit, OnDestroy {
     }
 
     this.markers = markers;
-    console.log('[IncidentStatus] 🗺️ Map markers updated:', this.markers);
   }
 
   openPhoto(photoUrl: string) {
-    console.log('[IncidentStatus] Opening photo:', photoUrl);
     window.open(photoUrl, '_blank');
   }
 }
