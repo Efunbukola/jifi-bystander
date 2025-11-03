@@ -11,6 +11,7 @@ import { environment } from 'src/environments/environment';
 export class DonationPageComponent implements OnInit {
   incidents: any[] = [];
   loading = false;
+  donors: Record<string, any[]> = {}; // incidentId → list of donors
 
   constructor(private http: HttpClient) {}
 
@@ -21,7 +22,6 @@ export class DonationPageComponent implements OnInit {
   async loadIncidents() {
     this.loading = true;
     try {
-      // Now returns incidents with totalDonated and remaining already calculated
       this.incidents = await firstValueFrom(
         this.http.get<any[]>(`${environment.api_url}api/incidents`)
       );
@@ -29,6 +29,18 @@ export class DonationPageComponent implements OnInit {
       console.error('Error loading incidents', err);
     } finally {
       this.loading = false;
+    }
+  }
+
+  async loadDonors(incidentId: string) {
+    if (this.donors[incidentId]) return; // already loaded
+    try {
+      const list = await firstValueFrom(
+        this.http.get<any[]>(`${environment.api_url}api/donations/incident/${incidentId}/donors`)
+      );
+      this.donors[incidentId] = list;
+    } catch (err) {
+      console.error('Error loading donors:', err);
     }
   }
 
@@ -52,6 +64,8 @@ export class DonationPageComponent implements OnInit {
       );
       alert('Thank you for your donation!');
       await this.loadIncidents();
+      this.donors[incidentId] = []; // refresh donors for that incident
+      await this.loadDonors(incidentId);
     } catch (err) {
       console.error('Donation failed', err);
       alert('Donation failed. Please try again.');
@@ -59,8 +73,7 @@ export class DonationPageComponent implements OnInit {
   }
 
   getDonationPercent(inc: any): number {
-  if (!inc.cost || inc.cost === 0) return 0;
-  return Math.min(100, Math.round((inc.totalDonated / inc.cost) * 100));
-}
-
+    if (!inc.cost || inc.cost === 0) return 0;
+    return Math.min(100, Math.round((inc.totalDonated / inc.cost) * 100));
+  }
 }

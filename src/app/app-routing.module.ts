@@ -11,6 +11,7 @@ import { UnauthGuard } from './gaurds/unauth.guard';
 import { NgModule } from '@angular/core';
 import { BystanderProfileComponent } from './pages/bystander-profile/bystander-profile.component';
 import { IncidentDonateComponent } from './pages/incident-donate/incident-donate.component';
+import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 
 
 const routes: Routes = [
@@ -32,7 +33,7 @@ const routes: Routes = [
   path: 'd/donate/:id',
   component: IncidentDonateComponent
   },
-
+  { path: 'reset-password', component: ResetPasswordComponent, canActivate: [UnauthGuard] },
   { path: 'incident-status/:id', component: IncidentStatusComponent },
   { path: '**', redirectTo: '/login' },
 ];
