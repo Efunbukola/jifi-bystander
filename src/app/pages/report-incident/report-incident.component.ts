@@ -74,24 +74,28 @@ export class ReportIncidentComponent implements OnInit {
     this.photoUrls = this.photoUrls.filter((p) => p !== url);
   }
 
-  /** Get user location */
-  async fetchLocation() {
-    try {
-      const position = await Geolocation.getCurrentPosition({ enableHighAccuracy: true });
-      this.location = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
-      };
-      console.log('[ReportIncident] Location fetched:', this.location);
-      this.checkingLocation = false;
-      return true;
-    } catch (err) {
-      console.warn('[ReportIncident] ⚠️ Could not get location:', err);
-      this.error = 'Unable to fetch your location. Please enable GPS.';
-      this.checkingLocation = false;
-      return false;
-    }
+ /** Get user location */
+async fetchLocation() {
+  try {
+    console.log('[ReportIncident] Requesting location permissions...');
+    const permResult = await Geolocation.requestPermissions();
+    console.log('[ReportIncident] Permission result:', permResult);
+
+    const position = await Geolocation.getCurrentPosition({ enableHighAccuracy: true });
+    this.location = {
+      lat: position.coords.latitude,
+      lng: position.coords.longitude,
+    };
+    console.log('[ReportIncident] Location fetched:', this.location);
+    this.checkingLocation = false;
+    return true;
+  } catch (err) {
+    console.warn('[ReportIncident] ⚠️ Could not get location:', err);
+    this.error = 'Unable to fetch your location. Please enable GPS and grant permissions.';
+    this.checkingLocation = false;
+    return false;
   }
+}
 
   /** Load nearby incidents */
   async loadNearbyIncidents() {

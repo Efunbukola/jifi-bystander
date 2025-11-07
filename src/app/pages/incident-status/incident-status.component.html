@@ -105,6 +105,48 @@
       </div>
     </section>
 
+
+    <section class="mt-6">
+  <h2 class="text-lg font-semibold text-gray-800 mb-2">🎥 Live Stream</h2>
+
+  <div class="bg-white border rounded-md p-4 shadow-sm">
+    <video
+      #preview
+      autoplay
+      playsinline
+      muted
+      class="w-full h-64 object-cover rounded-md border mb-3"
+    ></video>
+
+    <div class="flex gap-3">
+      <button
+        (click)="startLiveStream()"
+        [disabled]="streaming"
+        class="flex-1 bg-green-700 hover:bg-green-800 text-white py-2 rounded-md font-semibold"
+      >
+        ▶️ Go Live
+      </button>
+
+      <button
+        *ngIf="streaming"
+        (click)="stopLiveStream()"
+        class="flex-1 bg-red-700 hover:bg-red-800 text-white py-2 rounded-md font-semibold"
+      >
+        ⏹ Stop
+      </button>
+    </div>
+
+    <div *ngIf="livePlaybackUrl && false" class="mt-3 text-sm">
+      <strong>Live Stream:</strong>
+      <a [href]="livePlaybackUrl" target="_blank" class="text-blue-600 underline">
+        {{ livePlaybackUrl }}
+      </a>
+    </div>
+  </div>
+</section>
+
+    
+
     <!-- responders section -->
    <section>
   <h2 class="text-lg font-semibold text-gray-800 mb-1">

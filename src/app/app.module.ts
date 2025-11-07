@@ -80,7 +80,7 @@ import { ResetPasswordComponent } from './pages/reset-password/reset-password.co
     SearchIPPipe,
     AuthService,
     AuthGuard,
-    UnauthGuard,
+    UnauthGuard
   ],
   bootstrap: [AppComponent],
 })

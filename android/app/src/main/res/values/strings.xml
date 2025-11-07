@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">JIFI Bystander</string>
+    <string name="title_activity_main">Jifi Bystander</string>
+    <string name="package_name">io.jifi.bystander</string>
+    <string name="custom_url_scheme">io.jifi.bystander</string>
+</resources>
