@@ -1,5 +1,5 @@
 <div class="max-w-md mx-auto p-6 h-screen overflow-y-auto">
-  <h2 class="text-2xl font-bold mb-4 text-center">Sign Up</h2>
+  <h2 class="text-2xl font-bold mb-4 text-center">Bystander Sign Up</h2>
 
   <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-3">
     <input formControlName="first_name" placeholder="First Name" class="w-full border rounded-lg px-3 py-2" />
@@ -45,6 +45,20 @@
 
     <!-- Password Mismatch Message -->
     <p *ngIf="passwordMismatch" class="text-red-500 text-sm">Passwords do not match</p>
+
+    <div class="mb-4">
+  <label for="bystander_type" class="block text-sm font-medium text-gray-700">
+    Bystander Type
+  </label>
+  <select
+    id="bystander_type"
+    formControlName="bystander_type"
+    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+  >
+    <option value="human">Human</option>
+    <option value="robot">Robot</option>
+  </select>
+</div>
 
     <input formControlName="occupation" placeholder="Occupation" class="w-full border rounded-lg px-3 py-2" />
     <input formControlName="company" placeholder="Company/Organization" class="w-full border rounded-lg px-3 py-2" />

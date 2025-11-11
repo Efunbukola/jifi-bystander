@@ -29,6 +29,7 @@ export class SignupComponent {
       zip_code: [''],
       secret_question: ['', Validators.required],
       secret_answer: ['', Validators.required],
+      bystander_type: ['human', Validators.required],
     },
     { validators: [SignupComponent.passwordsMatchValidator] } // custom validator
   );

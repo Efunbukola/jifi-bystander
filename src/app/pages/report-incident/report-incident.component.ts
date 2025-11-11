@@ -74,28 +74,65 @@ export class ReportIncidentComponent implements OnInit {
     this.photoUrls = this.photoUrls.filter((p) => p !== url);
   }
 
- /** Get user location */
+/** Get user location (works on Android and in browser) */
+//SWITCH BACK TO ANDROID ONLY IMPLEMENTATION
 async fetchLocation() {
-  try {
-    console.log('[ReportIncident] Requesting location permissions...');
-    const permResult = await Geolocation.requestPermissions();
-    console.log('[ReportIncident] Permission result:', permResult);
+  this.checkingLocation = true;
+  this.error = '';
 
-    const position = await Geolocation.getCurrentPosition({ enableHighAccuracy: true });
-    this.location = {
-      lat: position.coords.latitude,
-      lng: position.coords.longitude,
-    };
-    console.log('[ReportIncident] Location fetched:', this.location);
-    this.checkingLocation = false;
-    return true;
+  try {
+    console.log('[ReportIncident] 🌍 Fetching location...');
+
+    // Try Capacitor Geolocation first (Android/iOS)
+    try {
+      const permResult = await Geolocation.requestPermissions();
+      console.log('[ReportIncident] 🧭 Permission result:', permResult);
+
+      const position = await Geolocation.getCurrentPosition({
+        enableHighAccuracy: true,
+        timeout: 10000, // 10 seconds timeout
+      });
+
+      this.location = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+      };
+      console.log('[ReportIncident] ✅ Got location via Capacitor:', this.location);
+      this.checkingLocation = false;
+      return true;
+    } catch (capError) {
+      console.warn('[ReportIncident] ⚠️ Capacitor Geolocation failed:', capError);
+      console.log('[ReportIncident] 🧩 Trying browser fallback...');
+    }
+
+    // ✅ Browser fallback using navigator.geolocation
+    if ('geolocation' in navigator) {
+      const browserPosition = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+        });
+      });
+
+      this.location = {
+        lat: browserPosition.coords.latitude,
+        lng: browserPosition.coords.longitude,
+      };
+      console.log('[ReportIncident] ✅ Got location via Browser API:', this.location);
+      this.checkingLocation = false;
+      return true;
+    } else {
+      throw new Error('Browser geolocation not supported');
+    }
   } catch (err) {
-    console.warn('[ReportIncident] ⚠️ Could not get location:', err);
-    this.error = 'Unable to fetch your location. Please enable GPS and grant permissions.';
+    console.error('[ReportIncident] ❌ Could not get location:', err);
+    this.error =
+      'Unable to fetch your location. Please enable GPS, allow permissions, or use a supported device.';
     this.checkingLocation = false;
     return false;
   }
 }
+
 
   /** Load nearby incidents */
   async loadNearbyIncidents() {

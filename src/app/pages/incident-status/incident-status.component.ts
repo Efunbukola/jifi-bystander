@@ -88,28 +88,47 @@ export class IncidentStatusComponent implements OnInit, OnDestroy {
     this.stopLiveStream();
   }
 
-  /** Start WebRTC Capture */
 async startLiveStream() {
-  const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-  this.previewRef.nativeElement.srcObject = stream;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    const video = this.previewRef.nativeElement;
+    video.srcObject = stream;
+    video.muted = true;
+    video.play();
 
-  const mimeType = 'video/webm;codecs=vp8,opus';
-  this.mediaRecorder = new MediaRecorder(stream, { mimeType });
+    const mimeType = 'video/webm;codecs=vp8,opus';
+    this.mediaRecorder = new MediaRecorder(stream, { mimeType });
 
-  const key = this.streamKey || this.incident?._id || 'test123';
-  const ws = new WebSocket(`${environment.api_url.replace('http', 'ws')}ws/live?key=${encodeURIComponent(key)}`);
-  ws.binaryType = 'arraybuffer';
+        // ✅ Use a consistent key derived from the incident itself
+    const incidentId = this.incident?._id || 'test123';
+    const safeKey = `incident_${incidentId}`; // stable per incident
+    const wsUrl = `${environment.api_url.replace(/^http/, 'ws')}ws/live?key=${encodeURIComponent(safeKey)}`;
+    const ws = new WebSocket(wsUrl);
+    ws.binaryType = 'arraybuffer';
 
-  ws.onopen = () => {
-    this.mediaRecorder.ondataavailable = async (e) => {
-      if (e.data && e.data.size > 0 && ws.readyState === WebSocket.OPEN) {
-        const buf = await e.data.arrayBuffer();
-        ws.send(buf);
-      }
+    ws.onopen = () => {
+      console.log('WebSocket connected');
+      this.mediaRecorder.ondataavailable = async e => {
+        if (e.data.size > 0 && ws.readyState === WebSocket.OPEN) {
+          ws.send(await e.data.arrayBuffer());
+        }
+      };
+      this.mediaRecorder.start(250);
+      this.streaming = true;
     };
-    this.mediaRecorder.start(250);
-  };
+
+    ws.onerror = err => console.error('WS error', err);
+    ws.onclose = () => {
+      console.log('WS closed');
+      this.stopLiveStream();
+    };
+
+  } catch (err) {
+    console.error('Stream start error', err);
+    this.error = 'Could not start camera/mic.';
+  }
 }
+
 
 
   /** Stop Streaming */
