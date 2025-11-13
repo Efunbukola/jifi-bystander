@@ -145,6 +145,22 @@
   </div>
 </section>
 
+<section class="mt-6 space-y-3">
+  <button
+    class="w-full bg-blue-600 text-white py-3 rounded-md font-semibold hover:bg-blue-700"
+    (click)="showBystanderSurvey = true"
+  >
+    Submit Bystander Survey
+  </button>
+
+  <button
+    class="w-full bg-purple-600 text-white py-3 rounded-md font-semibold hover:bg-purple-700"
+    (click)="showInjuredSurvey = true"
+  >
+    Submit Injured Person Survey
+  </button>
+</section>
+
     
 
     <!-- responders section -->
@@ -196,4 +212,118 @@
 
 
   </div>
+
+
+  <div
+  *ngIf="showBystanderSurvey"
+  class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+>
+  <div class="bg-white w-[90%] max-w-md p-6 rounded-lg shadow-lg relative">
+    <button
+      (click)="showBystanderSurvey = false"
+      class="absolute top-2 right-2 text-gray-600 text-2xl font-bold"
+    >
+      ×
+    </button>
+
+    <h2 class="text-xl font-bold mb-4 text-gray-800">Bystander Survey</h2>
+
+    <!-- Rating -->
+    <label class="text-sm font-medium mb-1 block">Responder Rating (1–5)</label>
+    <select
+      class="border p-2 w-full rounded mb-3"
+      [(ngModel)]="bystanderSurvey.performance_rating"
+    >
+      <option [ngValue]="null">Select rating</option>
+      <option *ngFor="let r of [1,2,3,4,5]" [value]="r">{{ r }}</option>
+    </select>
+
+    <!-- Comments -->
+    <label class="text-sm font-medium mb-1 block">Comments</label>
+    <textarea
+      class="border p-2 w-full rounded mb-4"
+      rows="3"
+      [(ngModel)]="bystanderSurvey.comments"
+      placeholder="Describe what happened..."
+    ></textarea>
+
+    <!-- Error -->
+    <p *ngIf="surveyError" class="text-red-600 mb-2">{{ surveyError }}</p>
+
+    <!-- Buttons -->
+    <button
+      (click)="submitBystanderSurvey()"
+      class="w-full bg-blue-600 text-white py-2 rounded-md font-semibold hover:bg-blue-700"
+      [disabled]="surveySubmitting"
+    >
+      {{ surveySubmitting ? 'Submitting...' : 'Submit Survey' }}
+    </button>
+  </div>
 </div>
+
+
+<div
+  *ngIf="showInjuredSurvey"
+  class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+>
+  <div class="bg-white w-[90%] max-w-md p-6 rounded-lg shadow-lg relative">
+    <button
+      (click)="showInjuredSurvey = false"
+      class="absolute top-2 right-2 text-gray-600 text-2xl font-bold"
+    >
+      ×
+    </button>
+
+    <h2 class="text-xl font-bold mb-4 text-gray-800">Injured Person Survey</h2>
+
+    <!-- First Name -->
+    <label class="text-sm font-medium mb-1 block">First Name</label>
+    <input
+      class="border p-2 w-full rounded mb-3"
+      [(ngModel)]="injuredSurvey.first_name"
+      placeholder="First name"
+    />
+
+    <!-- Last Name -->
+    <label class="text-sm font-medium mb-1 block">Last Name</label>
+    <input
+      class="border p-2 w-full rounded mb-3"
+      [(ngModel)]="injuredSurvey.last_name"
+      placeholder="Last name"
+    />
+
+    <!-- Rating -->
+    <label class="text-sm font-medium mb-1 block">Responder Rating (1–5)</label>
+    <select
+      class="border p-2 w-full rounded mb-3"
+      [(ngModel)]="injuredSurvey.performance_rating"
+    >
+      <option [ngValue]="null">Select rating</option>
+      <option *ngFor="let r of [1,2,3,4,5]" [value]="r">{{ r }}</option>
+    </select>
+
+    <!-- Comments -->
+    <label class="text-sm font-medium mb-1 block">Additional Comments</label>
+    <textarea
+      class="border p-2 w-full rounded mb-4"
+      rows="3"
+      [(ngModel)]="injuredSurvey.comments"
+      placeholder="Describe the responder's actions..."
+    ></textarea>
+
+    <p *ngIf="surveyError" class="text-red-600 mb-2">{{ surveyError }}</p>
+
+    <button
+      (click)="submitInjuredSurvey()"
+      class="w-full bg-purple-600 text-white py-2 rounded-md font-semibold hover:bg-purple-700"
+      [disabled]="surveySubmitting"
+    >
+      {{ surveySubmitting ? 'Submitting...' : 'Submit Survey' }}
+    </button>
+  </div>
+</div>
+
+
+</div>
+
+

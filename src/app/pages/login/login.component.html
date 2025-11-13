@@ -1,5 +1,5 @@
 <div class="max-w-md mx-auto p-6">
-  <h2 class="text-2xl font-bold mb-4 text-center">Login</h2>
+  <h2 class="text-2xl font-bold mb-4 text-center">Bystander Login</h2>
 
   <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
     <input
@@ -28,14 +28,14 @@
     <p class="text-red-500 text-center text-sm" *ngIf="error">{{ error }}</p>
   </form>
 
-  <!-- 🔗 Forgot password link -->
+  <!-- Forgot password link -->
   <div class="text-center mt-4 text-sm">
     <a routerLink="/reset-password" class="text-green-700 font-semibold hover:underline">
       Forgot your password?
     </a>
   </div>
 
-  <!-- 🔗 Sign up link -->
+  <!-- Sign up link -->
   <p class="text-center mt-3 text-sm">
     Don’t have an account?
     <a routerLink="/signup" class="text-green-700 font-semibold hover:underline">Sign up</a>

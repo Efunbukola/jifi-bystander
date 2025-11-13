@@ -31,62 +31,183 @@ export class IncidentStatusComponent implements OnInit, OnDestroy {
   zoom = 14;
   markers: any[] = [];
 
+  // Survey modals
+  showBystanderSurvey = false;
+  showInjuredSurvey = false;
+
+  // Survey form models
+  bystanderSurvey = {
+    performance_rating: null,
+    comments: ''
+  };
+
+  injuredSurvey = {
+    first_name: '',
+    last_name: '',
+    performance_rating: null,
+    comments: ''
+  };
+
+  surveySubmitting = false;
+  surveySuccess = '';
+  surveyError = '';
+
   constructor(
     private route: ActivatedRoute,
     private http: HttpClient,
     private auth: AuthService
   ) {}
-
+  
   async ngOnInit() {
+
     const id = this.route.snapshot.paramMap.get('id');
+    const user = this.auth.getUser();
+    const bystanderId = user?.bystanderId;
+
     if (!id) {
       this.error = 'Invalid incident ID';
       return;
     }
 
-    // Fetch the incident to get its stream key / playback URL
+    if (!bystanderId) {
+      this.error = 'You must be logged in to view incident status.';
+      this.loading = false;
+      return;
+    }
+
     try {
+
       const res: any = await this.http
         .get(`${environment.api_url}api/incidents/${id}`)
         .toPromise();
 
-      this.incident = res;
       this.livePlaybackUrl = res.liveStreamUrl;
       this.streamKey = res.streamKey || null; // optional if stored
 
+      this.socket = io(environment.api_url, { transports: ['websocket'] });
+      this.socket.emit('watchIncident', { incidentId: id, bystanderId });
 
-       // ✅ Update Google Map
-    if (res.location && res.location.coordinates?.length === 2) {
-      const [lng, lat] = res.location.coordinates;
+      // 1️Initial snapshot
+      this.socket.on('incidentSnapshot', (data) => {
+        console.log('[IncidentStatus] Snapshot received:', data);
+        this.incident = data.incident;
+        this.responders = data.responders || [];
 
-      this.center = { lat, lng };
-      this.zoom = 16;
-      this.markers = [
-        {
-          position: { lat, lng },
-          label: {
-            text: '🚨 Incident',
-            color: 'red',
-            fontWeight: 'bold'
-          }
+        
+        // Merge ETA info from incident.responderEtas
+        if (this.incident?.responderEtas?.length) {
+          this.responders = this.responders.map((r) => {
+            const eta = this.incident.responderEtas.find(
+              (e: any) => e.responderId === r.responderId
+            );
+            return { ...r, eta };
+          });
         }
-      ];
-    }
 
-      this.loading = false;
+        this.updateMapMarkers();
+        this.loading = false;
+      });
 
+      // 2️⃣ New responder joined
+      this.socket.on('responderJoined', (data) => {
+        if (!this.incident || data.incidentId !== this.incident._id) return;
 
+        console.log('[IncidentStatus] 🚑 Responder joined:', data);
+        const existing = this.responders.find(
+          (r) => r.responderId === data.responder.responderId
+        );
+
+        if (existing) {
+          existing.location = data.responder.location;
+          existing.eta = data.responder.eta;
+        } else {
+          this.responders.push({
+            ...data.responder,
+            eta: data.responder.eta,
+          });
+        }
+
+        this.incident.responderCount = data.responderCount;
+        this.incident.status = data.status;
+        this.updateMapMarkers();
+      });
+
+      // 3️⃣ Location updates
+      this.socket.on('responderLocationUpdate', (data) => {
+        if (!this.incident || data.incidentId !== this.incident._id) return;
+        const existing = this.responders.find(
+          (r) => r.responderId === data.responderId
+        );
+        if (existing) {
+          existing.location = data.location;
+        }
+        this.updateMapMarkers();
+      });
+
+      // 4️⃣ ETA updates (if backend sends updated ETA later)
+      this.socket.on('responderEtaUpdate', (data) => {
+        console.log('[IncidentStatus] ⏱️ ETA update received:', data);
+        const responder = this.responders.find(
+          (r) => r.responderId === data.responderId
+        );
+        if (responder) {
+          responder.eta = {
+            etaText: data.etaText,
+            method: data.method,
+          };
+        }
+      });
+
+      // 5️⃣ Handle incident closed
+      this.socket.on('incidentClosed', (data) => {
+        if (this.incident && data.incidentId === this.incident._id) {
+          this.incident.status = 'closed';
+        }
+      });
     } catch (err) {
-      console.error('Error loading incident:', err);
-      this.error = 'Unable to load incident data.';
+      console.error('[IncidentStatus] Error connecting:', err);
+      this.error = 'Unable to connect to live updates.';
       this.loading = false;
     }
   }
 
   ngOnDestroy() {
     if (this.socket) this.socket.disconnect();
-    this.stopLiveStream();
   }
+
+  updateMapMarkers() {
+    if (!this.incident) return;
+    const [lng, lat] = this.incident?.location?.coordinates || [0, 0];
+    this.center = { lat, lng };
+
+    const markers: any[] = [
+      {
+        position: { lat, lng },
+        label: { text: '📍 Incident', className: 'font-bold text-red-700' },
+      },
+    ];
+
+    for (const r of this.responders) {
+      if (r.location?.coordinates) {
+        const [rlng, rlat] = r.location.coordinates;
+        const etaLabel = r.eta?.etaText ? ` (${r.eta.etaText})` : '';
+        markers.push({
+          position: { lat: rlat, lng: rlng },
+          label: {
+            text: `🚑 ${r.name || 'Responder'}${etaLabel}`,
+            className: 'text-green-700',
+          },
+        });
+      }
+    }
+
+    this.markers = markers;
+  }
+
+  openPhoto(photoUrl: string) {
+    window.open(photoUrl, '_blank');
+  }
+
 
 async startLiveStream() {
   try {
@@ -141,4 +262,50 @@ async startLiveStream() {
     stream?.getTracks().forEach((t) => t.stop());
     this.streaming = false;
   }
+
+  /** Submit bystander survey */
+async submitBystanderSurvey() {
+  if (!this.incident?._id) return;
+
+  this.surveySubmitting = true;
+  this.surveySuccess = '';
+  this.surveyError = '';
+
+  try {
+    await this.http.post(
+      `${environment.api_url}api/bystanders/${this.incident._id}/bystander-survey`,
+      this.bystanderSurvey,
+    ).toPromise();
+
+    this.surveySuccess = "Thank you! Your feedback was submitted.";
+    this.showBystanderSurvey = false;
+  } catch (err: any) {
+    this.surveyError = err?.error?.error || "Survey submission failed.";
+  }
+
+  this.surveySubmitting = false;
+}
+
+async submitInjuredSurvey() {
+  if (!this.incident?._id) return;
+
+  this.surveySubmitting = true;
+  this.surveySuccess = '';
+  this.surveyError = '';
+
+  try {
+    await this.http.post(
+      `${environment.api_url}api/bystanders/${this.incident._id}/injured-survey`,
+      this.injuredSurvey
+    ).toPromise();
+
+    this.surveySuccess = "Thank you! Your feedback was submitted.";
+    this.showInjuredSurvey = false;
+  } catch (err: any) {
+    this.surveyError = err?.error?.error || "Survey submission failed.";
+  }
+
+  this.surveySubmitting = false;
+}
+
 }
