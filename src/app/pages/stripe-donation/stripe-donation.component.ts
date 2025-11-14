@@ -1,38 +1,60 @@
-import { Component, Input, AfterViewInit, OnDestroy, ElementRef } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnInit
+} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from 'src/environments/environment';
-import { loadStripe, Stripe, StripeElements, StripePaymentElement } from '@stripe/stripe-js';
 
 @Component({
   selector: 'app-stripe-donation',
   templateUrl: './stripe-donation.component.html',
   standalone: false,
 })
-export class StripeDonationComponent implements AfterViewInit, OnDestroy {
+export class StripeDonationComponent implements OnInit {
+
   @Input() incidentId!: string;
   @Input() bystanderId!: string;
 
-  amount: number = 0;
-  stripe: Stripe | null = null;
-  elements!: StripeElements;
-  paymentElement!: StripePaymentElement;
-  clientSecret = '';
+  amount = 0;
+
+  savedCards: any[] = [];
+  selectedCard: string | null = null;
+
   loading = false;
-  message = '';
   error = '';
+  message = '';
 
-  constructor(private http: HttpClient, private el: ElementRef, private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router
+  ) {}
 
-  // ✅ Initialize Stripe after view loads
-  async ngAfterViewInit() {
-    this.stripe = await loadStripe(environment.stripe_public_key);
+  ngOnInit() {
+    this.loadCards();
   }
 
-  // ✅ Step 1: Create PaymentIntent from backend and mount payment UI
-  async startPayment() {
+  
+  loadCards() {
+    this.http.get(`${environment.api_url}api/cards/list`)
+      .subscribe((cards: any) => {
+        this.savedCards = cards;
+
+        // Auto-select default card
+        const defaultCard = cards.find((c: any) => c.isDefault);
+        this.selectedCard = defaultCard ? defaultCard.id : null;
+      });
+  }
+
+  async donate() {
     if (!this.amount || this.amount <= 0) {
       this.error = 'Please enter a valid amount.';
+      return;
+    }
+
+    if (!this.selectedCard) {
+      this.error = 'Please select a card.';
       return;
     }
 
@@ -41,78 +63,33 @@ export class StripeDonationComponent implements AfterViewInit, OnDestroy {
     this.message = '';
 
     try {
-      const res: any = await this.http
-        .post(`${environment.api_url}api/stripe-donations/create-intent`, {
+      const res: any = await this.http.post(
+        `${environment.api_url}api/stripe-donations/charge-donation`,
+        {
           incidentId: this.incidentId,
           bystanderId: this.bystanderId,
           amount: this.amount,
-        })
-        .toPromise();
+          paymentMethodId: this.selectedCard
+        }
+      ).toPromise();
 
-      this.clientSecret = res.clientSecret;
-      await this.mountCard();
+      if (res.status === 'success') {
+        this.message = 'Donation successful 💚';
+
+        setTimeout(() => {
+          this.router.navigate(['/d/donations']);
+        }, 1500);
+      } else {
+        this.error = res.message || 'Payment failed.';
+      }
+
     } catch (err: any) {
-      console.error('Stripe startPayment error:', err);
-      this.error = err.error?.message || 'Failed to start donation.';
+      console.error('Donation error:', err);
+      this.error = err.error?.message || 'Unable to complete donation.';
     } finally {
       this.loading = false;
     }
   }
 
-  // ✅ Step 2: Safely mount Stripe’s payment element after DOM exists
-  async mountCard() {
-    if (!this.stripe || !this.clientSecret) return;
-
-    const container = this.el.nativeElement.querySelector('#payment-element');
-    if (!container) {
-      console.warn('⚠️ Payment element container not found — retrying...');
-      setTimeout(() => this.mountCard(), 300);
-      return;
-    }
-
-    this.elements = this.stripe.elements({ clientSecret: this.clientSecret });
-    this.paymentElement = this.elements.create('payment');
-    this.paymentElement.mount('#payment-element');
-  }
-
-  // ✅ Step 3: Confirm payment and navigate back
-  async confirmPayment() {
-    if (!this.stripe || !this.clientSecret) return;
-
-    this.loading = true;
-    this.error = '';
-    this.message = '';
-
-    const { error, paymentIntent } = await this.stripe.confirmPayment({
-      elements: this.elements,
-      confirmParams: {
-        return_url: window.location.href, // or handle manually
-      },
-      redirect: 'if_required',
-    });
-
-    if (error) {
-      console.error('Stripe confirmPayment error:', error);
-      this.error = error.message || 'Payment failed.';
-    } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-      this.message = 'Donation successful 💚';
-      // ✅ Navigate back to Donations after 1.5s
-      setTimeout(() => {
-        this.router.navigate(['/d/donations']);
-      }, 1500);
-    }
-
-    this.loading = false;
-  }
-
-  // ✅ Cleanup on destroy
-  ngOnDestroy() {
-    if (this.paymentElement) {
-      try {
-        this.paymentElement.unmount();
-      } catch (err) {
-        console.warn('⚠️ Stripe element cleanup failed:', err);
-      }
-    }
-  }
 }
+

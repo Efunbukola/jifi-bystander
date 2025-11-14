@@ -22,11 +22,11 @@ export class SignupComponent {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirm_password: ['', Validators.required],
-      occupation: [''],
-      company: [''],
-      city: [''],
-      state: [''],
-      zip_code: [''],
+      occupation: ['', Validators.required],
+      company: ['', Validators.required],
+      city: ['', Validators.required],
+      state: ['', Validators.required],
+      zip_code: ['', Validators.required],
       secret_question: ['', Validators.required],
       secret_answer: ['', Validators.required],
       bystander_type: ['human', Validators.required],
@@ -36,7 +36,7 @@ export class SignupComponent {
 
   constructor(private fb: FormBuilder, private auth: AuthService, private router: Router) {}
 
-  /** 🔐 Custom validator to ensure passwords match */
+  /** Custom validator to ensure passwords match */
   static passwordsMatchValidator(control: AbstractControl): ValidationErrors | null {
     const password = control.get('password')?.value;
     const confirm = control.get('confirm_password')?.value;

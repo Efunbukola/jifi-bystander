@@ -138,4 +138,126 @@
       {{ passwordMessage }}
     </p>
   </form>
+
+  <!-- MANAGE PAYMENT METHODS -->
+<hr class="my-6 border-gray-300" />
+
+<h3 class="text-md font-semibold mb-2">Payment Methods</h3>
+
+<!-- Global loading spinner -->
+<div *ngIf="cardsLoading" class="flex items-center gap-2 text-gray-600">
+  <svg
+    class="animate-spin h-5 w-5 text-green-700"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+  >
+    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+  </svg>
+  Loading cards...
+</div>
+
+<div *ngIf="savedCards.length === 0 && !cardsLoading" class="text-gray-500">
+  No saved cards. Add one below.
+</div>
+
+<div
+  *ngFor="let card of savedCards"
+  class="border p-3 rounded-lg mb-2 flex justify-between items-center"
+>
+  <div>
+    <p class="font-semibold">
+      {{ card.card.brand | titlecase }} •••• {{ card.card.last4 }}
+    </p>
+
+    <p class="text-sm text-gray-600">
+      Expires {{ card.card.exp_month }}/{{ card.card.exp_year }}
+    </p>
+
+    <!-- Default badge -->
+    <p
+      *ngIf="defaultPaymentMethod === card.id"
+      class="inline-block mt-1 px-2 py-1 text-xs bg-green-100 text-green-700 rounded-md"
+    >
+      Default
+    </p>
+  </div>
+
+  <div class="flex gap-2">
+
+    <!-- Set Default Button -->
+    <button
+      (click)="setDefault(card.id)"
+      [disabled]="settingDefaultId === card.id"
+      class="text-blue-600 text-sm relative"
+    >
+      <span *ngIf="settingDefaultId !== card.id">Set Default</span>
+
+      <!-- Spinner -->
+      <svg
+        *ngIf="settingDefaultId === card.id"
+        class="animate-spin h-4 w-4 text-blue-600"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+      </svg>
+    </button>
+
+    <!-- Delete Button -->
+    <button
+      (click)="deleteCard(card.id)"
+      [disabled]="deletingCardId === card.id"
+      class="text-red-600 text-sm relative"
+    >
+      <span *ngIf="deletingCardId !== card.id">Delete</span>
+
+      <!-- Spinner -->
+      <svg
+        *ngIf="deletingCardId === card.id"
+        class="animate-spin h-4 w-4 text-red-600"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+      </svg>
+    </button>
+
+  </div>
+</div>
+
+<!-- Add New Card -->
+<button
+  (click)="startAddCard()"
+  [disabled]="addingCard"
+  class="mt-4 bg-green-700 text-white py-2 px-4 rounded-md flex items-center justify-center gap-2"
+>
+  <span *ngIf="!addingCard">+ Add New Card</span>
+
+  <svg
+    *ngIf="addingCard"
+    class="animate-spin h-5 w-5 text-white"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+  >
+    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+  </svg>
+</button>
+
+<div *ngIf="addingCard && setupClientSecret" class="mt-4 border p-4 rounded-lg">
+  <app-stripe-add-card
+    [clientSecret]="setupClientSecret"
+    (completed)="onCardAdded()"
+  ></app-stripe-add-card>
+</div>
+
+
+
 </div>

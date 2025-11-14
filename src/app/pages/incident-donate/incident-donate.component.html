@@ -46,7 +46,6 @@
 
     <p class="text-sm text-gray-600 mb-4">
       💵 Goal: <strong>${{ incident.cost || 100 }}</strong> |
-      💚 Donated: <strong>${{ incident.totalDonated || 0 }}</strong>
     </p>
 
   </div>
@@ -58,7 +57,7 @@
     <!-- Embed donation form -->
     <app-stripe-donation
       [incidentId]="incident._id"
-      [bystanderId]="'5c21396c-cf5f-41c4-845b-6a76b258217b'"
+      [bystanderId]="user.bystanderId"
     ></app-stripe-donation>
 </div>
    

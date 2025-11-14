@@ -15,6 +15,13 @@ export class BystanderProfileComponent implements OnInit {
   passwordMessage = '';
   showNewPassword = false;
   profile: any;
+  savedCards: any[] = [];
+  cardsLoading = false;
+  addingCard = false;
+  setupClientSecret = '';
+  deletingCardId: string | null = null;
+  settingDefaultId: string | null = null;
+  defaultPaymentMethod: string | null = null;
 
   // Profile update form
   form = this.fb.group({
@@ -43,7 +50,66 @@ export class BystanderProfileComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadProfile();
+    this.loadCards();
   }
+
+  
+async loadCards() {
+  this.cardsLoading = true;
+
+  this.http.get(`${environment.api_url}api/cards/list`).subscribe((cards: any) => {
+    this.savedCards = cards;
+    this.cardsLoading = false;
+
+    // find default card from Stripe customer object
+    this.http.get(`${environment.api_url}api/bystanders/me`).subscribe((user: any) => {
+      this.defaultPaymentMethod = user?.defaultPaymentMethod || null;
+    });
+  });
+}
+
+startAddCard() {
+  this.addingCard = true;
+  this.setupClientSecret = ''; // clear old secret
+
+  this.http.post(`${environment.api_url}api/cards/create-setup-intent`, {})
+    .subscribe((res: any) => {
+      if (!res.clientSecret) {
+        console.error("❌ No client secret returned!");
+        this.addingCard = false;
+        return;
+      }
+
+      console.log("Retrieved secret:", res.clientSecret);
+      this.setupClientSecret = res.clientSecret; // 🔥 only now ready
+    });
+}
+
+onCardAdded() {
+  this.addingCard = false;
+  this.loadCards();
+}
+
+deleteCard(id: string) {
+  this.deletingCardId = id;
+
+  this.http.delete(`${environment.api_url}api/cards/delete/${id}`).subscribe(() => {
+    this.deletingCardId = null;
+    this.loadCards();
+  });
+}
+
+setDefault(id: string) {
+  this.settingDefaultId = id;
+
+  this.http.post(`${environment.api_url}api/cards/set-default`, { pmId: id })
+    .subscribe(() => {
+      this.settingDefaultId = null;
+      this.defaultPaymentMethod = id;
+      this.loadCards();
+    });
+}
+
 
   /** Load logged-in bystander's profile */
   loadProfile() {

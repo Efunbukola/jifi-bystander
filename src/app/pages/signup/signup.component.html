@@ -2,10 +2,59 @@
   <h2 class="text-2xl font-bold mb-4 text-center">Bystander Sign Up</h2>
 
   <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-3">
-    <input formControlName="first_name" placeholder="First Name" class="w-full border rounded-lg px-3 py-2" />
-    <input formControlName="last_name" placeholder="Last Name" class="w-full border rounded-lg px-3 py-2" />
-    <input formControlName="username" placeholder="Username" class="w-full border rounded-lg px-3 py-2" />
-    <input formControlName="email" type="email" placeholder="Email" class="w-full border rounded-lg px-3 py-2" />
+
+    <!-- First Name -->
+    <input
+      formControlName="first_name"
+      placeholder="First Name"
+      class="w-full border rounded-lg px-3 py-2"
+      [ngClass]="{
+        'border-red-500': form.get('first_name')?.invalid && form.get('first_name')?.touched
+      }"
+    />
+    <p *ngIf="form.get('first_name')?.invalid && form.get('first_name')?.touched"
+       class="text-red-500 text-xs mt-1">Please enter valid data.</p>
+
+
+    <!-- Last Name -->
+    <input
+      formControlName="last_name"
+      placeholder="Last Name"
+      class="w-full border rounded-lg px-3 py-2"
+      [ngClass]="{
+        'border-red-500': form.get('last_name')?.invalid && form.get('last_name')?.touched
+      }"
+    />
+    <p *ngIf="form.get('last_name')?.invalid && form.get('last_name')?.touched"
+       class="text-red-500 text-xs mt-1">Please enter valid data.</p>
+
+
+    <!-- Username -->
+    <input
+      formControlName="username"
+      placeholder="Username"
+      class="w-full border rounded-lg px-3 py-2"
+      [ngClass]="{
+        'border-red-500': form.get('username')?.invalid && form.get('username')?.touched
+      }"
+    />
+    <p *ngIf="form.get('username')?.invalid && form.get('username')?.touched"
+       class="text-red-500 text-xs mt-1">Please enter valid data.</p>
+
+
+    <!-- Email -->
+    <input
+      formControlName="email"
+      type="email"
+      placeholder="Email"
+      class="w-full border rounded-lg px-3 py-2"
+      [ngClass]="{
+        'border-red-500': form.get('email')?.invalid && form.get('email')?.touched
+      }"
+    />
+    <p *ngIf="form.get('email')?.invalid && form.get('email')?.touched"
+       class="text-red-500 text-xs mt-1">Please enter a valid email.</p>
+
 
     <!-- Password -->
     <div class="relative">
@@ -14,6 +63,9 @@
         formControlName="password"
         placeholder="Password"
         class="w-full border rounded-lg px-3 py-2 pr-10"
+        [ngClass]="{
+          'border-red-500': form.get('password')?.invalid && form.get('password')?.touched
+        }"
       />
       <button
         type="button"
@@ -24,6 +76,9 @@
         <span *ngIf="showPassword">🙈</span>
       </button>
     </div>
+    <p *ngIf="form.get('password')?.invalid && form.get('password')?.touched"
+       class="text-red-500 text-xs mt-1">Password must be at least 6 characters.</p>
+
 
     <!-- Confirm Password -->
     <div class="relative">
@@ -32,6 +87,11 @@
         formControlName="confirm_password"
         placeholder="Confirm Password"
         class="w-full border rounded-lg px-3 py-2 pr-10"
+        [ngClass]="{
+          'border-red-500':
+            (form.get('confirm_password')?.touched && form.hasError('passwordMismatch')) ||
+            (form.get('confirm_password')?.invalid && form.get('confirm_password')?.touched)
+        }"
       />
       <button
         type="button"
@@ -43,32 +103,118 @@
       </button>
     </div>
 
-    <!-- Password Mismatch Message -->
-    <p *ngIf="passwordMismatch" class="text-red-500 text-sm">Passwords do not match</p>
+    <p *ngIf="passwordMismatch" class="text-red-500 text-xs">Passwords do not match.</p>
 
-    <div class="mb-4">
-  <label for="bystander_type" class="block text-sm font-medium text-gray-700">
-    Bystander Type
-  </label>
-  <select
-    id="bystander_type"
-    formControlName="bystander_type"
-    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-  >
-    <option value="human">Human</option>
-    <option value="robot">Robot</option>
-  </select>
-</div>
 
-    <input formControlName="occupation" placeholder="Occupation" class="w-full border rounded-lg px-3 py-2" />
-    <input formControlName="company" placeholder="Company/Organization" class="w-full border rounded-lg px-3 py-2" />
-    <input formControlName="city" placeholder="City" class="w-full border rounded-lg px-3 py-2" />
-    <input formControlName="state" placeholder="State" class="w-full border rounded-lg px-3 py-2" />
-    <input formControlName="zip_code" placeholder="ZIP Code" class="w-full border rounded-lg px-3 py-2" />
+    <!-- Bystander Type -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Bystander Type</label>
+      <select
+        formControlName="bystander_type"
+        class="mt-1 block w-full border rounded-md px-3 py-2"
+        [ngClass]="{
+          'border-red-500': form.get('bystander_type')?.invalid && form.get('bystander_type')?.touched
+        }"
+      >
+        <option value="human">Human</option>
+        <option value="robot">Robot</option>
+      </select>
+      <p *ngIf="form.get('bystander_type')?.invalid && form.get('bystander_type')?.touched"
+         class="text-red-500 text-xs mt-1">Please enter valid data.</p>
+    </div>
 
-    <input formControlName="secret_question" placeholder="Secret Question" class="w-full border rounded-lg px-3 py-2" />
-    <input formControlName="secret_answer" placeholder="Secret Answer" class="w-full border rounded-lg px-3 py-2" />
+    <!-- Occupation -->
+    <input
+      formControlName="occupation"
+      placeholder="Occupation"
+      class="w-full border rounded-lg px-3 py-2"
+      [ngClass]="{
+        'border-red-500': form.get('occupation')?.invalid && form.get('occupation')?.touched
+      }"
+    />
+    <p *ngIf="form.get('occupation')?.invalid && form.get('occupation')?.touched"
+       class="text-red-500 text-xs mt-1">Please enter valid data.</p>
 
+
+    <!-- Company -->
+    <input
+      formControlName="company"
+      placeholder="Company/Organization"
+      class="w-full border rounded-lg px-3 py-2"
+      [ngClass]="{
+        'border-red-500': form.get('company')?.invalid && form.get('company')?.touched
+      }"
+    />
+    <p *ngIf="form.get('company')?.invalid && form.get('company')?.touched"
+       class="text-red-500 text-xs mt-1">Please enter valid data.</p>
+
+
+    <!-- City -->
+    <input
+      formControlName="city"
+      placeholder="City"
+      class="w-full border rounded-lg px-3 py-2"
+      [ngClass]="{
+        'border-red-500': form.get('city')?.invalid && form.get('city')?.touched
+      }"
+    />
+    <p *ngIf="form.get('city')?.invalid && form.get('city')?.touched"
+       class="text-red-500 text-xs mt-1">Please enter valid data.</p>
+
+
+    <!-- State -->
+    <input
+      formControlName="state"
+      placeholder="State"
+      class="w-full border rounded-lg px-3 py-2"
+      [ngClass]="{
+        'border-red-500': form.get('state')?.invalid && form.get('state')?.touched
+      }"
+    />
+    <p *ngIf="form.get('state')?.invalid && form.get('state')?.touched"
+       class="text-red-500 text-xs mt-1">Please enter valid data.</p>
+
+
+    <!-- Zip -->
+    <input
+      formControlName="zip_code"
+      placeholder="ZIP Code"
+      class="w-full border rounded-lg px-3 py-2"
+      [ngClass]="{
+        'border-red-500': form.get('zip_code')?.invalid && form.get('zip_code')?.touched
+      }"
+    />
+    <p *ngIf="form.get('zip_code')?.invalid && form.get('zip_code')?.touched"
+       class="text-red-500 text-xs mt-1">Please enter valid data.</p>
+
+
+    <!-- Secret Question -->
+    <input
+      formControlName="secret_question"
+      placeholder="Secret Question"
+      class="w-full border rounded-lg px-3 py-2"
+      [ngClass]="{
+        'border-red-500': form.get('secret_question')?.invalid && form.get('secret_question')?.touched
+      }"
+    />
+    <p *ngIf="form.get('secret_question')?.invalid && form.get('secret_question')?.touched"
+       class="text-red-500 text-xs mt-1">Please enter valid data.</p>
+
+
+    <!-- Secret Answer -->
+    <input
+      formControlName="secret_answer"
+      placeholder="Secret Answer"
+      class="w-full border rounded-lg px-3 py-2"
+      [ngClass]="{
+        'border-red-500': form.get('secret_answer')?.invalid && form.get('secret_answer')?.touched
+      }"
+    />
+    <p *ngIf="form.get('secret_answer')?.invalid && form.get('secret_answer')?.touched"
+       class="text-red-500 text-xs mt-1">Please enter valid data.</p>
+
+
+    <!-- Submit -->
     <button
       type="submit"
       [disabled]="loading || form.invalid"

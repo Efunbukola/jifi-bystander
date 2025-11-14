@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-donation-page',
@@ -11,9 +12,11 @@ import { environment } from 'src/environments/environment';
 export class DonationPageComponent implements OnInit {
   incidents: any[] = [];
   loading = false;
-  donors: Record<string, any[]> = {}; // incidentId → list of donors
+  donors: Record<string, any[]> = {};
 
-  constructor(private http: HttpClient) {}
+
+  constructor(private http: HttpClient,   private auth: AuthService
+) {}
 
   async ngOnInit() {
     await this.loadIncidents();

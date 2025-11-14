@@ -8,22 +8,45 @@
       [(ngModel)]="amount"
       min="1"
       placeholder="Enter donation amount"
-      class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-green-600 focus:border-transparent"
+      class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-green-600"
     />
   </div>
 
-  <!-- Stripe payment element -->
-  <div id="payment-element" class="mb-4"></div>
+  <!-- Saved Cards -->
+  <div class="mb-4">
+    <label class="block text-sm font-medium mb-2">Choose a saved card</label>
 
-  <!-- Button -->
+    <div *ngIf="savedCards.length === 0" class="text-gray-500 text-sm">
+      No saved cards available.
+    </div>
+
+    <div *ngFor="let card of savedCards" class="flex items-center gap-3 mb-2">
+      <input
+        type="radio"
+        name="cardSelect"
+        [value]="card.id"
+        [(ngModel)]="selectedCard"
+        class="h-4 w-4"
+      />
+
+      <div>
+        <p class="font-medium">
+          {{ card.card.brand | titlecase }} •••• {{ card.card.last4 }}
+        </p>
+        <p class="text-xs text-gray-600">
+          Expires {{ card.card.exp_month }}/{{ card.card.exp_year }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Donate Button -->
   <button
-    (click)="clientSecret ? confirmPayment() : startPayment()"
+    (click)="donate()"
     [disabled]="loading"
     class="w-full bg-green-700 hover:bg-green-800 text-white font-medium py-2 rounded-lg transition"
   >
-    <span *ngIf="!loading">
-      {{ clientSecret ? 'Confirm Donation' : 'Start Donation' }}
-    </span>
+    <span *ngIf="!loading">Donate</span>
     <span *ngIf="loading" class="flex items-center justify-center gap-2">
       <svg
         class="animate-spin h-5 w-5 text-white"
@@ -56,4 +79,5 @@
   <p *ngIf="error" class="text-red-600 mt-3 text-sm font-medium">
     {{ error }}
   </p>
+
 </div>

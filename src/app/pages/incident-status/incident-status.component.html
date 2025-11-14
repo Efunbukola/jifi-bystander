@@ -190,7 +190,6 @@
 
       <div class="text-xs text-gray-500 mt-1 sm:mt-0 flex items-center gap-2">
         <span *ngIf="r.eta?.method">
-          🛞
           {{
             r.eta.method === 'driving'
               ? 'Driving'
@@ -198,13 +197,11 @@
               ? 'Walking'
               : r.eta.method === 'bicycling'
               ? 'Biking'
-              : r.eta.method === 'transit'
+              : r.eta.method === 'train'
               ? 'Public Transit'
               : 'Unknown'
           }}
         </span>
-
-        <span>{{ r.online ? '🟢 Online' : '⚫ Offline' }}</span>
       </div>
     </li>
   </ul>

@@ -38,6 +38,7 @@ import { BystanderProfileComponent } from './pages/bystander-profile/bystander-p
 import { VideoUploaderComponent } from './components/video-uploader/video-uploader.component';
 import { DonationMeterComponent } from './components/donation-meter/donation-meter.component';
 import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
+import { StripeAddCardComponent } from './components/add-stripe-card/add-stripe-card.component';
 
 @NgModule({
   declarations: [
@@ -58,7 +59,8 @@ import { ResetPasswordComponent } from './pages/reset-password/reset-password.co
     BystanderProfileComponent,
     VideoUploaderComponent,
     DonationMeterComponent,
-    ResetPasswordComponent
+    ResetPasswordComponent,
+    StripeAddCardComponent
   ],
   imports: [
     BrowserModule,

@@ -217,7 +217,15 @@ async startLiveStream() {
     video.muted = true;
     video.play();
 
-    const mimeType = 'video/webm;codecs=vp8,opus';
+    let mimeType = '';
+    if (MediaRecorder.isTypeSupported('video/webm;codecs=h264,opus')) {
+      mimeType = 'video/webm;codecs=h264,opus';
+    } else if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264,aac')) {
+      mimeType = 'video/mp4;codecs=h264,aac';
+    } else {
+      mimeType = 'video/webm;codecs=vp8,opus'; // fallback
+    }
+    
     this.mediaRecorder = new MediaRecorder(stream, { mimeType });
 
         // ✅ Use a consistent key derived from the incident itself
