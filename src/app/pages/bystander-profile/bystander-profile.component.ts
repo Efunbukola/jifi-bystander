@@ -39,7 +39,7 @@ export class BystanderProfileComponent implements OnInit {
   // Password update form
   passwordForm = this.fb.group({
     current_password: ['', Validators.required],
-    new_password: ['', [Validators.required, Validators.minLength(6)]],
+    new_password: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(25)]],
   });
 
   constructor(
@@ -182,4 +182,35 @@ setDefault(id: string) {
   signOut() {
   this.auth.logout();
 }
+
+confirmDeactivate() {
+  const confirmed = confirm(
+    "Are you sure you want to deactivate your account? This will sign you out immediately."
+  );
+
+  if (!confirmed) return;
+
+  this.deactivateAccount();
+}
+
+deactivateAccount() {
+  this.loading = true;
+
+  this.http.post(`${environment.api_url}api/bystanders/deactivate`, {
+    reason: "User chose to deactivate"
+  })
+  .subscribe({
+    next: (res: any) => {
+      alert("Your account has been deactivated.");
+      this.auth.logout(); // auto-logout
+    },
+    error: (err) => {
+      console.error("Error deactivating account:", err);
+      alert("Failed to deactivate account. Please try again.");
+      this.loading = false;
+    }
+  });
+}
+
+
 }

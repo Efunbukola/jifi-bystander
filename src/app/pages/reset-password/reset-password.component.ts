@@ -23,7 +23,7 @@ export class ResetPasswordComponent {
 
   formReset = this.fb.group({
     secret_answer: ['', Validators.required],
-    new_password: ['', [Validators.required, Validators.minLength(6)]],
+    new_password: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(25)]],
   });
 
   constructor(private fb: FormBuilder, private http: HttpClient, private router: Router) {}

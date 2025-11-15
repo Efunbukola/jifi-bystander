@@ -20,7 +20,7 @@ export class SignupComponent {
       last_name: ['', Validators.required],
       username: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
+      password: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(25)]],
       confirm_password: ['', Validators.required],
       occupation: ['', Validators.required],
       company: ['', Validators.required],
